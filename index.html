@@ -1,0 +1,3042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>♟ Chess Learning Registration</title>
+    <style>
+        /* ============================================
+           ROOT VARIABLES & RESET
+        ============================================ */
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #c9a227;
+            --accent-light: #f0c040;
+            --white: #ffffff;
+            --light-bg: #f8f9fa;
+            --border: #e0e0e0;
+            --text-dark: #1a1a2e;
+            --text-gray: #6c757d;
+            --success: #28a745;
+            --error: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --card-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light-bg);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* ============================================
+           SCROLLBAR
+        ============================================ */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+        /* ============================================
+           PAGES (SECTIONS)
+        ============================================ */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* ============================================
+           PUBLIC REGISTRATION PAGE
+        ============================================ */
+        #registrationPage {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+
+        /* Header */
+        .reg-header {
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--accent);
+            position: relative;
+        }
+
+        .reg-header .chess-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 8px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .reg-header h1 {
+            color: var(--white);
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .reg-header h1 span {
+            color: var(--accent);
+        }
+
+        .reg-header .tagline {
+            color: var(--accent-light);
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+
+        .reg-header .description {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            margin-top: 8px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Chess board pattern decoration */
+        .chess-pattern {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 12px;
+        }
+
+        .chess-pattern span {
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            opacity: 0.6;
+        }
+
+        .chess-pattern span:nth-child(even) {
+            background: transparent;
+            border: 1px solid var(--accent);
+        }
+
+        /* Admin login link in header */
+        .admin-link-header {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+
+        .admin-link-btn {
+            background: transparent;
+            border: 1px solid rgba(201,162,39,0.4);
+            color: rgba(201,162,39,0.7);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            transition: var(--transition);
+            text-transform: uppercase;
+        }
+
+        .admin-link-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(201,162,39,0.1);
+        }
+
+        /* Form container */
+        .reg-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px 20px 50px;
+        }
+
+        .form-card {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .form-section {
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-section:last-of-type {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-title .icon {
+            font-size: 1.1rem;
+        }
+
+        /* Form grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .form-grid.single { grid-template-columns: 1fr; }
+        .form-grid.triple { grid-template-columns: 1fr 1fr 1fr; }
+        .col-span-2 { grid-column: span 2; }
+
+        /* Form groups */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group label .required {
+            color: var(--error);
+            margin-left: 3px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.88rem;
+            color: var(--text-dark);
+            transition: var(--transition);
+            background: #fafafa;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(201,162,39,0.15);
+        }
+
+        .form-group input.error,
+        .form-group select.error,
+        .form-group textarea.error {
+            border-color: var(--error);
+            background: #fff8f8;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .error-msg {
+            font-size: 0.75rem;
+            color: var(--error);
+            margin-top: 4px;
+            display: none;
+        }
+
+        .error-msg.show { display: block; }
+
+        /* Radio / Checkbox groups */
+        .radio-group,
+        .checkbox-group-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .radio-option,
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border: 2px solid var(--border);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.82rem;
+            user-select: none;
+            background: #fafafa;
+        }
+
+        .radio-option:hover,
+        .checkbox-option:hover {
+            border-color: var(--accent);
+            background: rgba(201,162,39,0.08);
+        }
+
+        .radio-option input,
+        .checkbox-option input {
+            display: none;
+        }
+
+        .radio-option.selected,
+        .checkbox-option.selected {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        /* Consent checkbox */
+        .consent-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .consent-group:hover {
+            border-color: var(--accent);
+        }
+
+        .consent-group.selected {
+            border-color: var(--success);
+            background: #f0fff4;
+        }
+
+        .consent-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2px;
+            transition: var(--transition);
+        }
+
+        .consent-group.selected .consent-checkbox {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .consent-text {
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        /* Submit button */
+        .submit-section {
+            padding: 25px 30px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            text-align: center;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: var(--primary);
+            border: none;
+            padding: 15px 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 20px rgba(201,162,39,0.4);
+            min-width: 220px;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(201,162,39,0.5);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .submit-note {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.75rem;
+            margin-top: 10px;
+        }
+
+        /* Footer admin link */
+        .reg-footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255,255,255,0.3);
+            font-size: 0.72rem;
+        }
+
+        .reg-footer button {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.25);
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: var(--transition);
+            letter-spacing: 1px;
+        }
+
+        .reg-footer button:hover {
+            color: rgba(201,162,39,0.5);
+        }
+
+        /* ============================================
+           MODALS (ADMIN LOGIN + SUCCESS + VIEW DETAILS)
+        ============================================ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 35px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            animation: modalIn 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.8) translateY(-20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .modal-box.large {
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px; right: 18px;
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: var(--text-gray);
+            transition: var(--transition);
+            line-height: 1;
+        }
+
+        .modal-close:hover { color: var(--error); }
+
+        /* Admin Login Modal */
+        .admin-login-icon {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .modal-title {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .modal-subtitle {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            margin-bottom: 25px;
+        }
+
+        .admin-form-group {
+            margin-bottom: 16px;
+        }
+
+        .admin-form-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        .admin-form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .admin-form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26,26,46,0.1);
+        }
+
+        .login-error {
+            background: #fff5f5;
+            border: 1px solid #fcc;
+            color: var(--error);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            margin-bottom: 15px;
+            display: none;
+            text-align: center;
+        }
+
+        .login-error.show { display: block; }
+
+        .btn-login {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 0.5px;
+        }
+
+        .btn-login:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 20px rgba(26,26,46,0.3);
+        }
+
+        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Success Modal */
+        .success-icon {
+            text-align: center;
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            60% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .success-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success);
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            text-align: center;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .btn-success-ok {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, var(--success), #20c997);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-success-ok:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 20px rgba(40,167,69,0.3);
+        }
+
+        /* ============================================
+           LOADING OVERLAY
+        ============================================ */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .loading-overlay.active { display: flex; }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-text {
+            color: var(--white);
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        /* ============================================
+           ADMIN DASHBOARD PAGE
+        ============================================ */
+        #adminPage {
+            min-height: 100vh;
+            background: #f0f2f5;
+        }
+
+        /* Admin Header */
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 0 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 65px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-logo {
+            font-size: 1.6rem;
+        }
+
+        .admin-header-title {
+            color: var(--white);
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .admin-header-title span {
+            color: var(--accent);
+        }
+
+        .admin-header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-user-badge {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.8);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-logout {
+            background: rgba(220,53,69,0.2);
+            border: 1px solid rgba(220,53,69,0.4);
+            color: #ff6b7a;
+            padding: 7px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: var(--transition);
+            letter-spacing: 0.5px;
+        }
+
+        .btn-logout:hover {
+            background: var(--error);
+            color: var(--white);
+            border-color: var(--error);
+        }
+
+        /* Admin Main Content */
+        .admin-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 25px 20px;
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 18px 15px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            border-top: 4px solid var(--border);
+            transition: var(--transition);
+            cursor: default;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .summary-card.total { border-top-color: var(--primary); }
+        .summary-card.new { border-top-color: var(--info); }
+        .summary-card.contacted { border-top-color: var(--warning); }
+        .summary-card.interested { border-top-color: #6f42c1; }
+        .summary-card.trial { border-top-color: var(--accent); }
+        .summary-card.joined { border-top-color: var(--success); }
+        .summary-card.not-interested { border-top-color: var(--error); }
+
+        .summary-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            font-size: 0.72rem;
+            color: var(--text-gray);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Controls Bar */
+        .controls-bar {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 18px 20px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+        }
+
+        .controls-top {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px 10px 38px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.87rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        .btn-refresh {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn-refresh:hover {
+            background: var(--secondary);
+            transform: translateY(-1px);
+        }
+
+        .btn-export {
+            background: var(--success);
+            color: var(--white);
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn-export:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        /* Filters */
+        .filters-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: var(--transition);
+            background: #fafafa;
+            font-family: inherit;
+            color: var(--text-dark);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .filter-date {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.82rem;
+            transition: var(--transition);
+            background: #fafafa;
+            font-family: inherit;
+        }
+
+        .filter-date:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-clear-filters {
+            padding: 8px 14px;
+            background: #f8f9fa;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            transition: var(--transition);
+        }
+
+        .btn-clear-filters:hover {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        /* Data Table */
+        .table-container {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .table-header-bar {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header-bar h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .records-count {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            background: #f0f2f5;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        thead th {
+            background: #f8f9fa;
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+            transition: var(--transition);
+        }
+
+        tbody tr:hover {
+            background: #fafbff;
+        }
+
+        tbody td {
+            padding: 12px 14px;
+            color: var(--text-dark);
+            vertical-align: middle;
+        }
+
+        .td-name {
+            font-weight: 600;
+            min-width: 130px;
+        }
+
+        .td-id {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .status-New { background: #e3f2fd; color: #1565c0; }
+        .status-Contacted { background: #fff8e1; color: #f57f17; }
+        .status-Interested { background: #f3e5f5; color: #6a1b9a; }
+        .status-Trial { background: #fff3e0; color: #e65100; }
+        .status-Joined { background: #e8f5e9; color: #2e7d32; }
+        .status-Not-Interested { background: #ffebee; color: #c62828; }
+
+        /* Action buttons in table */
+        .action-btns {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .btn-view {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.72rem;
+            font-weight: 600;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn-view:hover { background: #0f3460; }
+
+        .btn-call {
+            background: var(--success);
+            color: var(--white);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.72rem;
+            font-weight: 600;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-call:hover { background: #218838; }
+
+        .btn-whatsapp {
+            background: #25d366;
+            color: var(--white);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.72rem;
+            font-weight: 600;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-whatsapp:hover { background: #128c7e; }
+
+        /* No data */
+        .no-data {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-gray);
+        }
+
+        .no-data .no-data-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .no-data p {
+            font-size: 0.9rem;
+        }
+
+        /* ============================================
+           VIEW DETAILS MODAL
+        ============================================ */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .detail-item.full-width {
+            grid-column: span 2;
+        }
+
+        .detail-label {
+            font-size: 0.7rem;
+            color: var(--text-gray);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+
+        .detail-value {
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        /* Status update & notes in modal */
+        .admin-actions-section {
+            border-top: 2px solid var(--border);
+            padding-top: 18px;
+            margin-top: 5px;
+        }
+
+        .admin-actions-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-update-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .status-update-row label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            white-space: nowrap;
+        }
+
+        .status-update-select {
+            flex: 1;
+            min-width: 150px;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .status-update-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-update-status {
+            background: var(--accent);
+            color: var(--primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn-update-status:hover {
+            background: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        .notes-area {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+            transition: var(--transition);
+            margin-bottom: 10px;
+        }
+
+        .notes-area:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-save-notes {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-save-notes:hover {
+            background: var(--secondary);
+        }
+
+        .update-msg {
+            font-size: 0.78rem;
+            margin-top: 6px;
+            padding: 6px 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .update-msg.success {
+            background: #d4edda;
+            color: var(--success);
+            display: block;
+        }
+
+        .update-msg.error {
+            background: #f8d7da;
+            color: var(--error);
+            display: block;
+        }
+
+        /* Contact buttons in modal */
+        .contact-btns-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-modal-call {
+            flex: 1;
+            padding: 10px;
+            background: var(--success);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            transition: var(--transition);
+        }
+
+        .btn-modal-call:hover { background: #218838; }
+
+        .btn-modal-whatsapp {
+            flex: 1;
+            padding: 10px;
+            background: #25d366;
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            transition: var(--transition);
+        }
+
+        .btn-modal-whatsapp:hover { background: #128c7e; }
+
+        /* ============================================
+           TOAST NOTIFICATION
+        ============================================ */
+        .toast {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: var(--primary);
+            color: var(--white);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            z-index: 99999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            max-width: 300px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--error); }
+        .toast.warning { background: var(--warning); color: var(--primary); }
+
+        /* ============================================
+           PAGINATION
+        ============================================ */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 18px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            padding: 6px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            background: var(--white);
+            transition: var(--transition);
+            min-width: 36px;
+            text-align: center;
+        }
+
+        .page-btn:hover, .page-btn.active {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* ============================================
+           RESPONSIVE
+        ============================================ */
+        @media (max-width: 768px) {
+            .reg-header h1 { font-size: 1.4rem; }
+            .admin-link-header { top: 10px; right: 10px; }
+            .admin-link-btn { font-size: 0.65rem; padding: 5px 10px; }
+            .form-section { padding: 18px 15px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-grid.triple { grid-template-columns: 1fr 1fr; }
+            .col-span-2 { grid-column: span 1; }
+            .submit-section { padding: 20px 15px; }
+            .btn-submit { min-width: 180px; padding: 13px 30px; }
+            .admin-header { padding: 0 15px; height: 55px; }
+            .admin-header-title { font-size: 0.85rem; }
+            .admin-user-badge { display: none; }
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .controls-top { flex-direction: column; }
+            .search-box { min-width: 100%; }
+            .filters-row { flex-direction: column; }
+            .filter-select, .filter-date { width: 100%; }
+            .detail-grid { grid-template-columns: 1fr; }
+            .detail-item.full-width { grid-column: span 1; }
+                        .admin-main { padding: 15px 12px; }
+            .modal-box { padding: 25px 18px; }
+            .status-update-row { flex-direction: column; align-items: flex-start; }
+            .status-update-select { width: 100%; }
+        }
+
+        @media (max-width: 480px) {
+            .reg-header h1 { font-size: 1.2rem; }
+            .chess-icon { font-size: 2.2rem; }
+            .form-grid.triple { grid-template-columns: 1fr; }
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .summary-number { font-size: 1.6rem; }
+            .action-btns { flex-direction: column; }
+            .contact-btns-row { flex-direction: column; }
+            .btn-modal-call, .btn-modal-whatsapp { flex: none; width: 100%; }
+            table { font-size: 0.75rem; }
+            thead th, tbody td { padding: 8px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============================================
+     LOADING OVERLAY
+============================================ -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Please wait...</div>
+</div>
+
+<!-- ============================================
+     TOAST NOTIFICATION
+============================================ -->
+<div class="toast" id="toast"></div>
+
+<!-- ============================================
+     PAGE 1: PUBLIC REGISTRATION PAGE
+============================================ -->
+<div class="page active" id="registrationPage">
+
+    <!-- Header -->
+    <div class="reg-header">
+        <div class="admin-link-header">
+            <button class="admin-link-btn" onclick="openAdminLogin()">🔐 Admin</button>
+        </div>
+        <span class="chess-icon">♟</span>
+        <h1>Chess <span>Learning</span></h1>
+        <div class="tagline">Learn • Practice • Improve</div>
+        <div class="description">
+            Build your chess skills from the basics to advanced strategies with structured learning and practice.
+        </div>
+        <div class="chess-pattern">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="reg-container">
+        <div class="form-card">
+
+            <!-- SECTION 1: Personal Details -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span class="icon">👤</span> Personal Details
+                </div>
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label>Full Name <span class="required">*</span></label>
+                        <input type="text" id="fullName" placeholder="Enter your full name" maxlength="100">
+                        <span class="error-msg" id="err-fullName">Please enter your full name</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Age <span class="required">*</span></label>
+                        <input type="number" id="age" placeholder="Your age" min="3" max="100">
+                        <span class="error-msg" id="err-age">Please enter a valid age (3–100)</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <div class="radio-group" id="gender">
+                            <label class="radio-option" onclick="selectRadio('gender','Male',this)">
+                                <input type="radio" name="gender" value="Male"> Male
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('gender','Female',this)">
+                                <input type="radio" name="gender" value="Female"> Female
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('gender','Other',this)">
+                                <input type="radio" name="gender" value="Other"> Other
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mobile Number <span class="required">*</span></label>
+                        <input type="tel" id="mobile" placeholder="10-digit mobile number" maxlength="10">
+                        <span class="error-msg" id="err-mobile">Please enter a valid 10-digit Indian mobile number</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>WhatsApp Number</label>
+                        <input type="tel" id="whatsapp" placeholder="WhatsApp number (if different)" maxlength="10">
+                        <span class="error-msg" id="err-whatsapp">Please enter a valid 10-digit number</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="email" placeholder="your@email.com" maxlength="100">
+                        <span class="error-msg" id="err-email">Please enter a valid email address</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" id="city" placeholder="Your city" maxlength="60">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Area / Locality</label>
+                        <input type="text" id="area" placeholder="Area or locality" maxlength="80">
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECTION 2: Chess Details -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span class="icon">♞</span> Chess Details
+                </div>
+                <div class="form-grid single">
+
+                    <div class="form-group">
+                        <label>Chess Experience <span class="required">*</span></label>
+                        <div class="radio-group" id="chessExp">
+                            <label class="radio-option" onclick="selectRadio('chessExp','Beginner - Never Played',this)">
+                                <input type="radio" name="chessExp" value="Beginner - Never Played"> Beginner – Never Played
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('chessExp','Beginner - Know Basic Rules',this)">
+                                <input type="radio" name="chessExp" value="Beginner - Know Basic Rules"> Beginner – Know Basic Rules
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('chessExp','Intermediate',this)">
+                                <input type="radio" name="chessExp" value="Intermediate"> Intermediate
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('chessExp','Advanced',this)">
+                                <input type="radio" name="chessExp" value="Advanced"> Advanced
+                            </label>
+                        </div>
+                        <span class="error-msg" id="err-chessExp">Please select your chess experience level</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Have you played Chess before?</label>
+                        <div class="radio-group" id="playedBefore">
+                            <label class="radio-option" onclick="selectRadio('playedBefore','Yes',this)">
+                                <input type="radio" name="playedBefore" value="Yes"> Yes
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('playedBefore','No',this)">
+                                <input type="radio" name="playedBefore" value="No"> No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Current Chess Rating <span style="color:var(--text-gray);font-weight:400;">(Optional)</span></label>
+                        <input type="text" id="chessRating" placeholder="e.g. 800, 1200 or leave blank" maxlength="10">
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECTION 3: Learning Preferences -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span class="icon">📚</span> Learning Preferences
+                </div>
+                <div class="form-grid single">
+
+                    <div class="form-group">
+                        <label>Preferred Learning Mode <span class="required">*</span></label>
+                        <div class="radio-group" id="learnMode">
+                            <label class="radio-option" onclick="selectRadio('learnMode','Online',this)">
+                                <input type="radio" name="learnMode" value="Online"> 🌐 Online
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('learnMode','Offline',this)">
+                                <input type="radio" name="learnMode" value="Offline"> 🏫 Offline
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('learnMode','Both',this)">
+                                <input type="radio" name="learnMode" value="Both"> ✅ Both
+                            </label>
+                        </div>
+                        <span class="error-msg" id="err-learnMode">Please select preferred learning mode</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Preferred Class Timing <span class="required">*</span></label>
+                        <div class="radio-group" id="timing">
+                            <label class="radio-option" onclick="selectRadio('timing','Morning',this)">
+                                <input type="radio" name="timing" value="Morning"> 🌅 Morning
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('timing','Afternoon',this)">
+                                <input type="radio" name="timing" value="Afternoon"> ☀️ Afternoon
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('timing','Evening',this)">
+                                <input type="radio" name="timing" value="Evening"> 🌙 Evening
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('timing','Flexible',this)">
+                                <input type="radio" name="timing" value="Flexible"> 🔄 Flexible
+                            </label>
+                        </div>
+                        <span class="error-msg" id="err-timing">Please select preferred timing</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Preferred Days <span class="required">*</span></label>
+                        <div class="radio-group" id="prefDays">
+                            <label class="radio-option" onclick="selectRadio('prefDays','Weekdays',this)">
+                                <input type="radio" name="prefDays" value="Weekdays"> Weekdays
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('prefDays','Weekends',this)">
+                                <input type="radio" name="prefDays" value="Weekends"> Weekends
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('prefDays','Both',this)">
+                                <input type="radio" name="prefDays" value="Both"> Both
+                            </label>
+                        </div>
+                        <span class="error-msg" id="err-prefDays">Please select preferred days</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECTION 4: About You -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span class="icon">🎯</span> About You
+                </div>
+                <div class="form-grid single">
+
+                    <div class="form-group">
+                        <label>Reason for Learning Chess <span class="required">*</span></label>
+                        <div class="radio-group" id="reason">
+                            <label class="radio-option" onclick="selectRadio('reason','Hobby',this)">
+                                <input type="radio" name="reason" value="Hobby"> 🎮 Hobby
+                            </label>
+                                                       <label class="radio-option" onclick="selectRadio('reason','Improve Concentration',this)">
+                                <input type="radio" name="reason" value="Improve Concentration"> 🧠 Improve Concentration
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('reason','School / College',this)">
+                                <input type="radio" name="reason" value="School / College"> 🏫 School / College
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('reason','Tournament Preparation',this)">
+                                <input type="radio" name="reason" value="Tournament Preparation"> 🏆 Tournament Preparation
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('reason','Competitive Chess',this)">
+                                <input type="radio" name="reason" value="Competitive Chess"> ♟ Competitive Chess
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('reason','Other',this)">
+                                <input type="radio" name="reason" value="Other"> 📌 Other
+                            </label>
+                        </div>
+                        <span class="error-msg" id="err-reason">Please select reason for learning chess</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Who is interested in learning?</label>
+                        <div class="radio-group" id="learnerType">
+                            <label class="radio-option" onclick="selectRadio('learnerType','Self',this)">
+                                <input type="radio" name="learnerType" value="Self"> 🙋 Self
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('learnerType','Child',this)">
+                                <input type="radio" name="learnerType" value="Child"> 👦 Child
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('learnerType','Other',this)">
+                                <input type="radio" name="learnerType" value="Other"> 👥 Other
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="guardianGroup">
+                        <label>Parent / Guardian Name
+                            <span style="color:var(--text-gray);font-weight:400;">(Required if learner is a child)</span>
+                        </label>
+                        <input type="text" id="guardianName" placeholder="Parent or Guardian full name" maxlength="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Do you have a Chess Board?</label>
+                        <div class="radio-group" id="chessBoard">
+                            <label class="radio-option" onclick="selectRadio('chessBoard','Yes',this)">
+                                <input type="radio" name="chessBoard" value="Yes"> Yes
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('chessBoard','No',this)">
+                                <input type="radio" name="chessBoard" value="No"> No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Additional Message / Requirement
+                            <span style="color:var(--text-gray);font-weight:400;">(Optional)</span>
+                        </label>
+                        <textarea id="additionalMsg" placeholder="Any specific requirement or message..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>How did you hear about Chess Classes? <span class="required">*</span></label>
+                        <div class="radio-group" id="source">
+                            <label class="radio-option" onclick="selectRadio('source','Friend / Reference',this)">
+                                <input type="radio" name="source" value="Friend / Reference"> 👥 Friend / Reference
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('source','WhatsApp',this)">
+                                <input type="radio" name="source" value="WhatsApp"> 💬 WhatsApp
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('source','Instagram',this)">
+                                <input type="radio" name="source" value="Instagram"> 📸 Instagram
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('source','Facebook',this)">
+                                <input type="radio" name="source" value="Facebook"> 👍 Facebook
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('source','Google',this)">
+                                <input type="radio" name="source" value="Google"> 🔍 Google
+                            </label>
+                            <label class="radio-option" onclick="selectRadio('source','Other',this)">
+                                <input type="radio" name="source" value="Other"> 📌 Other
+                            </label>
+                        </div>
+                        <span class="error-msg" id="err-source">Please select how you heard about us</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECTION 5: Consent -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span class="icon">✅</span> Consent
+                </div>
+
+                <div class="consent-group" id="consentGroup" onclick="toggleConsent()">
+                    <div class="consent-checkbox" id="consentCheckbox">✓</div>
+                    <div class="consent-text">
+                        <strong>I agree to be contacted</strong> regarding Chess classes and learning programs.
+                        My information will be used only for chess learning purposes and will not be shared with third parties.
+                    </div>
+                </div>
+                <span class="error-msg" id="err-consent">Please agree to the consent to proceed</span>
+            </div>
+
+            <!-- SUBMIT BUTTON -->
+            <div class="submit-section">
+                <button class="btn-submit" id="submitBtn" onclick="submitRegistration()">
+                    ♟ Submit Registration
+                </button>
+                <div class="submit-note">
+                    * Required fields must be filled before submission
+                </div>
+            </div>
+
+        </div><!-- end form-card -->
+    </div><!-- end reg-container -->
+
+    <!-- Footer with discreet admin link -->
+    <div class="reg-footer">
+        <span>© 2024 Chess Learning Classes &nbsp;|&nbsp;</span>
+        <button onclick="openAdminLogin()">Admin Login</button>
+    </div>
+
+</div><!-- end registrationPage -->
+
+<!-- ============================================
+     PAGE 2: ADMIN DASHBOARD PAGE
+============================================ -->
+<div class="page" id="adminPage">
+
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="admin-header-left">
+            <div class="admin-logo">♟</div>
+            <div class="admin-header-title">Chess Learning – <span>Admin Dashboard</span></div>
+        </div>
+        <div class="admin-header-right">
+            <div class="admin-user-badge">🔐 Admin</div>
+            <button class="btn-logout" onclick="adminLogout()">🚪 Logout</button>
+        </div>
+    </div>
+
+    <!-- Admin Main -->
+    <div class="admin-main">
+
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+            <div class="summary-card total">
+                <div class="summary-number" id="countTotal">0</div>
+                <div class="summary-label">Total</div>
+            </div>
+            <div class="summary-card new">
+                <div class="summary-number" id="countNew">0</div>
+                <div class="summary-label">New</div>
+            </div>
+            <div class="summary-card contacted">
+                <div class="summary-number" id="countContacted">0</div>
+                <div class="summary-label">Contacted</div>
+            </div>
+            <div class="summary-card interested">
+                <div class="summary-number" id="countInterested">0</div>
+                <div class="summary-label">Interested</div>
+            </div>
+            <div class="summary-card trial">
+                <div class="summary-number" id="countTrial">0</div>
+                <div class="summary-label">Trial</div>
+            </div>
+            <div class="summary-card joined">
+                <div class="summary-number" id="countJoined">0</div>
+                <div class="summary-label">Joined</div>
+            </div>
+            <div class="summary-card not-interested">
+                <div class="summary-number" id="countNotInterested">0</div>
+                <div class="summary-label">Not Interested</div>
+            </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+            <div class="controls-top">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput"
+                        placeholder="Search by name, mobile, email, city, ID..."
+                        oninput="applyFilters()">
+                </div>
+                <button class="btn-refresh" onclick="loadDashboardData()">🔄 Refresh</button>
+                <button class="btn-export" onclick="exportCSV()">📥 Export CSV</button>
+            </div>
+            <div class="filters-row">
+                <select class="filter-select" id="filterStatus" onchange="applyFilters()">
+                    <option value="">All Status</option>
+                    <option value="New">New</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="Interested">Interested</option>
+                    <option value="Trial Scheduled">Trial Scheduled</option>
+                    <option value="Joined">Joined</option>
+                    <option value="Not Interested">Not Interested</option>
+                </select>
+                <select class="filter-select" id="filterExperience" onchange="applyFilters()">
+                    <option value="">All Experience</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                </select>
+                <select class="filter-select" id="filterMode" onchange="applyFilters()">
+                    <option value="">All Modes</option>
+                    <option value="Online">Online</option>
+                    <option value="Offline">Offline</option>
+                    <option value="Both">Both</option>
+                </select>
+                <select class="filter-select" id="filterDate" onchange="toggleCustomDate()">
+                    <option value="">All Dates</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="custom">Custom Range</option>
+                </select>
+                <input type="date" class="filter-date" id="dateFrom" style="display:none"
+                    onchange="applyFilters()" placeholder="From Date">
+                <input type="date" class="filter-date" id="dateTo" style="display:none"
+                    onchange="applyFilters()" placeholder="To Date">
+                <button class="btn-clear-filters" onclick="clearFilters()">✕ Clear</button>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-container">
+            <div class="table-header-bar">
+                <h3>📋 Registered Users</h3>
+                <span class="records-count" id="recordsCount">0 records</span>
+            </div>
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Reg. ID</th>
+                            <th>Date</th>
+                            <th>Name</th>
+                            <th>Age</th>
+                            <th>Mobile</th>
+                            <th>City</th>
+                            <th>Experience</th>
+                            <th>Mode</th>
+                            <th>Timing</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="no-data" id="noData" style="display:none">
+                <div class="no-data-icon">♟</div>
+                <p>No registrations found</p>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+
+    </div><!-- end admin-main -->
+</div><!-- end adminPage -->
+
+<!-- ============================================
+     MODAL: ADMIN LOGIN
+============================================ -->
+<div class="modal-overlay" id="adminLoginModal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeAdminLogin()">✕</button>
+        <div class="admin-login-icon">🔐</div>
+        <div class="modal-title">Admin Login</div>
+        <div class="modal-subtitle">Chess Learning Management System</div>
+
+        <div class="login-error" id="loginError">
+            ❌ Invalid Admin ID or Password. Please try again.
+        </div>
+
+        <div class="admin-form-group">
+            <label>Admin User ID</label>
+            <input type="text" id="adminId" placeholder="Enter Admin ID"
+                onkeypress="if(event.key==='Enter') doAdminLogin()">
+        </div>
+        <div class="admin-form-group">
+            <label>Admin Password</label>
+            <input type="password" id="adminPass" placeholder="Enter Password"
+                onkeypress="if(event.key==='Enter') doAdminLogin()">
+        </div>
+
+        <button class="btn-login" id="loginBtn" onclick="doAdminLogin()">
+            🔓 Login to Dashboard
+        </button>
+    </div>
+</div>
+
+<!-- ============================================
+     MODAL: SUCCESS
+============================================ -->
+<div class="modal-overlay" id="successModal">
+    <div class="modal-box">
+        <div class="success-icon">✅</div>
+        <div class="success-title">Registration Successful!</div>
+        <div class="success-message">
+            Thank you for your interest in Chess learning.<br>
+            We have received your details and will contact you soon.<br><br>
+            <strong>Please keep your mobile number accessible.</strong>
+        </div>
+        <button class="btn-success-ok" onclick="closeSuccessModal()">
+            👍 OK, Got it!
+        </button>
+    </div>
+</div>
+
+<!-- ============================================
+     MODAL: VIEW USER DETAILS
+============================================ -->
+<div class="modal-overlay" id="viewDetailsModal">
+    <div class="modal-box large">
+        <button class="modal-close" onclick="closeViewDetails()">✕</button>
+        <div class="modal-title" style="text-align:left; margin-bottom:15px;">
+            👤 User Details
+        </div>
+
+        <div class="detail-grid" id="detailGrid">
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- Contact Buttons -->
+        <div class="contact-btns-row">
+            <a class="btn-modal-call" id="modalCallBtn" href="#">📞 Call Now</a>
+            <a class="btn-modal-whatsapp" id="modalWhatsAppBtn" href="#" target="_blank">💬 WhatsApp</a>
+        </div>
+
+        <!-- Admin Actions -->
+        <div class="admin-actions-section">
+            <div class="admin-actions-title">⚙️ Admin Actions</div>
+
+            <!-- Status Update -->
+            <div class="status-update-row">
+                <label>Update Status:</label>
+                <select class="status-update-select" id="modalStatusSelect">
+                    <option value="New">New</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="Interested">Interested</option>
+                    <option value="Trial Scheduled">Trial Scheduled</option>
+                    <option value="Joined">Joined</option>
+                    <option value="Not Interested">Not Interested</option>
+                </select>
+                <button class="btn-update-status" onclick="updateStatus()">✔ Update</button>
+            </div>
+            <div class="update-msg" id="statusUpdateMsg"></div>
+
+            <!-- Admin Notes -->
+            <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:6px;">
+                Admin Notes:
+            </label>
+            <textarea class="notes-area" id="modalNotesArea"
+                placeholder="Add your notes here... e.g. Called on 10 Sept, Trial scheduled for Saturday"></textarea>
+            <button class="btn-save-notes" onclick="saveNotes()">💾 Save Notes</button>
+            <div class="update-msg" id="notesUpdateMsg"></div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================
+     JAVASCRIPT
+============================================ -->
+<script>
+// ============================================
+// CONFIGURATION — CHANGE THIS
+// ============================================
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybGU4Ax37zXC6s_YNR6tzU-20TQ8xokRkNBKceh4BA7kJgqfeypRqtI1ooGWGL26kE/exec"; // CHANGE THIS
+
+// ============================================
+// STATE VARIABLES
+// ============================================
+let allRegistrations = [];
+let filteredRegistrations = [];
+let currentPage = 1;
+const RECORDS_PER_PAGE = 20;
+let currentViewRow = null;
+let adminSessionToken = null;
+let consentChecked = false;
+let selectedValues = {};
+
+// ============================================
+// PAGE NAVIGATION
+// ============================================
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+// ============================================
+// LOADING OVERLAY
+// ============================================
+function showLoading(text) {
+    const overlay = document.getElementById('loadingOverlay');
+    overlay.querySelector('.loading-text').textContent = text || 'Please wait...';
+    overlay.classList.add('active');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+// ============================================
+// TOAST NOTIFICATION
+// ============================================
+function showToast(message, type) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast show ' + (type || '');
+    setTimeout(() => {
+        toast.className = 'toast';
+    }, 3500);
+}
+
+// ============================================
+// RADIO BUTTON SELECTION
+// ============================================
+function selectRadio(groupName, value, element) {
+    // Remove selected from all options in group
+    document.querySelectorAll(`[id="${groupName}"] .radio-option`).forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    // Add selected to clicked
+    element.classList.add('selected');
+    // Store value
+    selectedValues[groupName] = value;
+    // Clear error
+    const errEl = document.getElementById('err-' + groupName);
+    if (errEl) {
+        errEl.classList.remove('show');
+    }
+    const inputEl = document.getElementById(groupName);
+    if (inputEl) {
+        inputEl.classList.remove('error');
+    }
+}
+
+// ============================================
+// CONSENT TOGGLE
+// ============================================
+function toggleConsent() {
+    consentChecked = !consentChecked;
+    const group = document.getElementById('consentGroup');
+    const checkbox = document.getElementById('consentCheckbox');
+    if (consentChecked) {
+        group.classList.add('selected');
+        checkbox.textContent = '✓';
+        document.getElementById('err-consent').classList.remove('show');
+    } else {
+        group.classList.remove('selected');
+        checkbox.textContent = '';
+    }
+}
+
+// ============================================
+// FORM VALIDATION
+// ============================================
+function validateForm() {
+    let isValid = true;
+
+    // Helper: show error
+    function showErr(fieldId, errId) {
+        const field = document.getElementById(fieldId);
+        const err = document.getElementById(errId);
+        if (field) field.classList.add('error');
+        if (err) err.classList.add('show');
+        isValid = false;
+    }
+
+    // Helper: clear error
+    function clearErr(fieldId, errId) {
+        const field = document.getElementById(fieldId);
+        const err = document.getElementById(errId);
+        if (field) field.classList.remove('error');
+        if (err) err.classList.remove('show');
+    }
+
+    // Full Name
+    const fullName = document.getElementById('fullName').value.trim();
+    if (!fullName || fullName.length < 2) {
+        showErr('fullName', 'err-fullName');
+    } else {
+        clearErr('fullName', 'err-fullName');
+    }
+
+    // Age
+    const age = parseInt(document.getElementById('age').value);
+    if (!age || age < 3 || age > 100) {
+        showErr('age', 'err-age');
+    } else {
+        clearErr('age', 'err-age');
+    }
+
+    // Mobile
+    const mobile = document.getElementById('mobile').value.trim();
+    const mobileRegex = /^[6-9]\d{9}$/;
+    if (!mobileRegex.test(mobile)) {
+               showErr('mobile', 'err-mobile');
+    } else {
+        clearErr('mobile', 'err-mobile');
+    }
+
+    // WhatsApp (optional but if entered must be valid)
+    const whatsapp = document.getElementById('whatsapp').value.trim();
+    if (whatsapp && !mobileRegex.test(whatsapp)) {
+        showErr('whatsapp', 'err-whatsapp');
+    } else {
+        clearErr('whatsapp', 'err-whatsapp');
+    }
+
+    // Email (optional but if entered must be valid)
+    const email = document.getElementById('email').value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email && !emailRegex.test(email)) {
+        showErr('email', 'err-email');
+    } else {
+        clearErr('email', 'err-email');
+    }
+
+    // Chess Experience
+    if (!selectedValues['chessExp']) {
+        document.getElementById('err-chessExp').classList.add('show');
+        isValid = false;
+    } else {
+        document.getElementById('err-chessExp').classList.remove('show');
+    }
+
+    // Learning Mode
+    if (!selectedValues['learnMode']) {
+        document.getElementById('err-learnMode').classList.add('show');
+        isValid = false;
+    } else {
+        document.getElementById('err-learnMode').classList.remove('show');
+    }
+
+    // Timing
+    if (!selectedValues['timing']) {
+        document.getElementById('err-timing').classList.add('show');
+        isValid = false;
+    } else {
+        document.getElementById('err-timing').classList.remove('show');
+    }
+
+    // Preferred Days
+    if (!selectedValues['prefDays']) {
+        document.getElementById('err-prefDays').classList.add('show');
+        isValid = false;
+    } else {
+        document.getElementById('err-prefDays').classList.remove('show');
+    }
+
+    // Reason
+    if (!selectedValues['reason']) {
+        document.getElementById('err-reason').classList.add('show');
+        isValid = false;
+    } else {
+        document.getElementById('err-reason').classList.remove('show');
+    }
+
+    // Source
+    if (!selectedValues['source']) {
+        document.getElementById('err-source').classList.add('show');
+        isValid = false;
+    } else {
+        document.getElementById('err-source').classList.remove('show');
+    }
+
+    // Consent
+    if (!consentChecked) {
+        document.getElementById('err-consent').classList.add('show');
+        isValid = false;
+    } else {
+        document.getElementById('err-consent').classList.remove('show');
+    }
+
+    return isValid;
+}
+
+// ============================================
+// SUBMIT REGISTRATION
+// ============================================
+function submitRegistration() {
+    // Validate first
+    if (!validateForm()) {
+        showToast('Please fill all required fields correctly', 'error');
+        // Scroll to first error
+        const firstError = document.querySelector('.error-msg.show');
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+    }
+
+    // Disable button to prevent double submit
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ Submitting...';
+
+    showLoading('Submitting your registration...');
+
+    // Collect form data
+    const formData = {
+        action: 'register',
+        fullName: document.getElementById('fullName').value.trim(),
+        age: document.getElementById('age').value.trim(),
+        gender: selectedValues['gender'] || '',
+        mobile: document.getElementById('mobile').value.trim(),
+        whatsapp: document.getElementById('whatsapp').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        city: document.getElementById('city').value.trim(),
+        area: document.getElementById('area').value.trim(),
+        chessExp: selectedValues['chessExp'] || '',
+        playedBefore: selectedValues['playedBefore'] || '',
+        chessRating: document.getElementById('chessRating').value.trim(),
+        learnMode: selectedValues['learnMode'] || '',
+        timing: selectedValues['timing'] || '',
+        prefDays: selectedValues['prefDays'] || '',
+        reason: selectedValues['reason'] || '',
+        learnerType: selectedValues['learnerType'] || '',
+        guardianName: document.getElementById('guardianName').value.trim(),
+        chessBoard: selectedValues['chessBoard'] || '',
+        additionalMsg: document.getElementById('additionalMsg').value.trim(),
+        source: selectedValues['source'] || ''
+    };
+
+    // Send to Google Apps Script
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(formData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        hideLoading();
+        if (data.status === 'success') {
+            // Show success modal
+            document.getElementById('successModal').classList.add('active');
+        } else {
+            showToast('❌ ' + (data.message || 'Unable to submit. Please try again.'), 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '♟ Submit Registration';
+        }
+    })
+    .catch(err => {
+        hideLoading();
+        console.error('Submission error:', err);
+        showToast('❌ Unable to submit. Please check your internet connection and try again.', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '♟ Submit Registration';
+    });
+}
+
+// ============================================
+// SUCCESS MODAL
+// ============================================
+function closeSuccessModal() {
+    document.getElementById('successModal').classList.remove('active');
+    resetForm();
+}
+
+function resetForm() {
+    // Reset all text inputs
+    document.getElementById('fullName').value = '';
+    document.getElementById('age').value = '';
+    document.getElementById('mobile').value = '';
+    document.getElementById('whatsapp').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('city').value = '';
+    document.getElementById('area').value = '';
+    document.getElementById('chessRating').value = '';
+    document.getElementById('guardianName').value = '';
+    document.getElementById('additionalMsg').value = '';
+
+    // Reset radio buttons
+    document.querySelectorAll('.radio-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+
+    // Reset consent
+    consentChecked = false;
+    document.getElementById('consentGroup').classList.remove('selected');
+    document.getElementById('consentCheckbox').textContent = '';
+
+    // Reset selected values
+    selectedValues = {};
+
+    // Reset submit button
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = false;
+    submitBtn.textContent = '♟ Submit Registration';
+
+    // Clear all errors
+    document.querySelectorAll('.error-msg').forEach(e => e.classList.remove('show'));
+    document.querySelectorAll('.error').forEach(e => e.classList.remove('error'));
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================
+// ADMIN LOGIN MODAL
+// ============================================
+function openAdminLogin() {
+    document.getElementById('adminId').value = '';
+    document.getElementById('adminPass').value = '';
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('adminLoginModal').classList.add('active');
+    setTimeout(() => document.getElementById('adminId').focus(), 100);
+}
+
+function closeAdminLogin() {
+    document.getElementById('adminLoginModal').classList.remove('active');
+}
+
+// ============================================
+// ADMIN LOGIN - SERVER SIDE AUTHENTICATION
+// ============================================
+function doAdminLogin() {
+    const adminId = document.getElementById('adminId').value.trim();
+    const adminPass = document.getElementById('adminPass').value.trim();
+
+    if (!adminId || !adminPass) {
+        document.getElementById('loginError').textContent = '⚠️ Please enter both Admin ID and Password.';
+        document.getElementById('loginError').classList.add('show');
+        return;
+    }
+
+    const loginBtn = document.getElementById('loginBtn');
+    loginBtn.disabled = true;
+    loginBtn.textContent = '⏳ Verifying...';
+    document.getElementById('loginError').classList.remove('show');
+
+    showLoading('Authenticating...');
+
+    // Send credentials to Apps Script for server-side verification
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+            action: 'adminLogin',
+            adminId: adminId,
+            adminPass: adminPass
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        hideLoading();
+        loginBtn.disabled = false;
+        loginBtn.textContent = '🔓 Login to Dashboard';
+
+        if (data.status === 'success' && data.token) {
+            // Store session token in sessionStorage only
+            // NOT in localStorage (clears on browser close)
+            sessionStorage.setItem('adminToken', data.token);
+            sessionStorage.setItem('adminId', adminId);
+            adminSessionToken = data.token;
+
+            closeAdminLogin();
+            showPage('adminPage');
+            loadDashboardData();
+        } else {
+            document.getElementById('loginError').textContent =
+                '❌ Invalid Admin ID or Password. Please try again.';
+            document.getElementById('loginError').classList.add('show');
+            document.getElementById('adminPass').value = '';
+        }
+    })
+    .catch(err => {
+        hideLoading();
+        loginBtn.disabled = false;
+        loginBtn.textContent = '🔓 Login to Dashboard';
+        document.getElementById('loginError').textContent =
+            '❌ Connection error. Please check internet and try again.';
+        document.getElementById('loginError').classList.add('show');
+        console.error('Login error:', err);
+    });
+}
+
+// ============================================
+// ADMIN LOGOUT
+// ============================================
+function adminLogout() {
+    if (confirm('Are you sure you want to logout?')) {
+        // Notify server to invalidate token
+        if (adminSessionToken) {
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    action: 'logout',
+                    token: adminSessionToken
+                })
+            }).catch(() => {});
+        }
+
+        // Clear session
+        sessionStorage.removeItem('adminToken');
+        sessionStorage.removeItem('adminId');
+        adminSessionToken = null;
+        allRegistrations = [];
+        filteredRegistrations = [];
+
+        // Clear table
+        document.getElementById('tableBody').innerHTML = '';
+
+        showPage('registrationPage');
+        showToast('Logged out successfully', 'success');
+    }
+}
+
+// ============================================
+// LOAD DASHBOARD DATA
+// ============================================
+function loadDashboardData() {
+    const token = sessionStorage.getItem('adminToken');
+    if (!token) {
+        showPage('registrationPage');
+        return;
+    }
+
+    adminSessionToken = token;
+    showLoading('Loading registrations...');
+
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+            action: 'getRegistrations',
+            token: token
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        hideLoading();
+        if (data.status === 'success') {
+            allRegistrations = data.registrations || [];
+            filteredRegistrations = [...allRegistrations];
+            updateSummaryCards();
+            currentPage = 1;
+            renderTable();
+            showToast('Data loaded successfully', 'success');
+        } else if (data.status === 'unauthorized') {
+            sessionStorage.removeItem('adminToken');
+            adminSessionToken = null;
+            showPage('registrationPage');
+            showToast('Session expired. Please login again.', 'error');
+        } else {
+            showToast('❌ Failed to load data: ' + (data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(err => {
+        hideLoading();
+        console.error('Load data error:', err);
+        showToast('❌ Connection error. Please try again.', 'error');
+    });
+}
+
+// ============================================
+// UPDATE SUMMARY CARDS
+// ============================================
+function updateSummaryCards() {
+    const counts = {
+        total: allRegistrations.length,
+        New: 0,
+        Contacted: 0,
+        Interested: 0,
+        'Trial Scheduled': 0,
+        Joined: 0,
+        'Not Interested': 0
+    };
+
+    allRegistrations.forEach(reg => {
+        const status = reg.status || 'New';
+        if (counts.hasOwnProperty(status)) {
+            counts[status]++;
+        }
+    });
+
+    document.getElementById('countTotal').textContent = counts.total;
+    document.getElementById('countNew').textContent = counts['New'];
+    document.getElementById('countContacted').textContent = counts['Contacted'];
+    document.getElementById('countInterested').textContent = counts['Interested'];
+    document.getElementById('countTrial').textContent = counts['Trial Scheduled'];
+    document.getElementById('countJoined').textContent = counts['Joined'];
+    document.getElementById('countNotInterested').textContent = counts['Not Interested'];
+}
+
+// ============================================
+// APPLY FILTERS & SEARCH
+// ============================================
+function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const statusFilter = document.getElementById('filterStatus').value;
+    const expFilter = document.getElementById('filterExperience').value;
+    const modeFilter = document.getElementById('filterMode').value;
+    const dateFilter = document.getElementById('filterDate').value;
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay());
+
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    filteredRegistrations = allRegistrations.filter(reg => {
+        // Search filter
+        if (search) {
+            const searchStr = [
+                reg.fullName, reg.mobile, reg.whatsapp,
+                reg.email, reg.city, reg.regId
+            ].join(' ').toLowerCase();
+            if (!searchStr.includes(search)) return false;
+        }
+
+        // Status filter
+        if (statusFilter && reg.status !== statusFilter) return false;
+
+        // Experience filter
+        if (expFilter) {
+            const exp = (reg.chessExp || '').toLowerCase();
+            if (!exp.includes(expFilter.toLowerCase())) return false;
+        }
+
+        // Mode filter
+        if (modeFilter && reg.learnMode !== modeFilter) return false;
+
+        // Date filter
+        if (dateFilter && dateFilter !== 'custom') {
+            const regDate = new Date(reg.timestamp);
+            regDate.setHours(0, 0, 0, 0);
+            if (dateFilter === 'today' && regDate.getTime() !== today.getTime()) return false;
+            if (dateFilter === 'week' && regDate < weekStart) return false;
+            if (dateFilter === 'month' && regDate < monthStart) return false;
+        }
+
+        // Custom date range
+        if (dateFilter === 'custom') {
+            const regDate = new Date(reg.timestamp);
+            if (dateFrom && regDate < new Date(dateFrom)) return false;
+            if (dateTo) {
+                const toDate = new Date(dateTo);
+                toDate.setHours(23, 59, 59, 999);
+                if (regDate > toDate) return false;
+            }
+        }
+
+        return true;
+    });
+
+    currentPage = 1;
+    renderTable();
+}
+
+// ============================================
+// TOGGLE CUSTOM DATE INPUTS
+// ============================================
+function toggleCustomDate() {
+    const val = document.getElementById('filterDate').value;
+    const dateFrom = document.getElementById('dateFrom');
+    const dateTo = document.getElementById('dateTo');
+    if (val === 'custom') {
+        dateFrom.style.display = 'block';
+        dateTo.style.display = 'block';
+    } else {
+        dateFrom.style.display = 'none';
+        dateTo.style.display = 'none';
+        applyFilters();
+    }
+}
+
+// ============================================
+// CLEAR FILTERS
+// ============================================
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterExperience').value = '';
+    document.getElementById('filterMode').value = '';
+    document.getElementById('filterDate').value = '';
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value = '';
+    document.getElementById('dateFrom').style.display = 'none';
+    document.getElementById('dateTo').style.display = 'none';
+    filteredRegistrations = [...allRegistrations];
+    currentPage = 1;
+    renderTable();
+}
+
+// ============================================
+// RENDER TABLE
+// ============================================
+function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    const noData = document.getElementById('noData');
+    const recordsCount = document.getElementById('recordsCount');
+
+    recordsCount.textContent = filteredRegistrations.length + ' records';
+
+    if (filteredRegistrations.length === 0) {
+        tbody.innerHTML = '';
+        noData.style.display = 'block';
+        document.getElementById('pagination').innerHTML = '';
+        return;
+    }
+
+    noData.style.display = 'none';
+
+    // Pagination
+    const totalPages = Math.ceil(filteredRegistrations.length / RECORDS_PER_PAGE);
+    const start = (currentPage - 1) * RECORDS_PER_PAGE;
+    const end = start + RECORDS_PER_PAGE;
+    const pageData = filteredRegistrations.slice(start, end);
+
+    tbody.innerHTML = pageData.map((reg, idx) => {
+        const statusClass = 'status-' + (reg.status || 'New').replace(' ', '-');
+        const whatsappNum = reg.whatsapp || reg.mobile || '';
+        const whatsappMsg = encodeURIComponent('Hello ' + reg.fullName + ', I received your request regarding Chess learning classes.');
+        const dateStr = reg.timestamp ? new Date(reg.timestamp).toLocaleDateString('en-IN') : '-';
+
+        return `
+        <tr>
+            <td class="td-id">${escapeHtml(reg.regId || '-')}</td>
+            <td style="white-space:nowrap">${dateStr}</td>
+            <td class="td-name">${escapeHtml(reg.fullName || '-')}</td>
+            <td>${escapeHtml(reg.age || '-')}</td>
+            <td style="white-space:nowrap">${escapeHtml(reg.mobile || '-')}</td>
+            <td>${escapeHtml(reg.city || '-')}</td>
+            <td style="white-space:nowrap;font-size:0.75rem">${escapeHtml(reg.chessExp || '-')}</td>
+            <td>${escapeHtml(reg.learnMode || '-')}</td>
+            <td>${escapeHtml(reg.timing || '-')}</td>
+            <td>
+                <span class="status-badge ${statusClass}">
+                    ${escapeHtml(reg.status || 'New')}
+                </span>
+            </td>
+            <td>
+                <div class="action-btns">
+                    <button class="btn-view" onclick="viewDetails(${start + idx})">👁 View</button>
+                    <a class="btn-call" href="tel:${escapeHtml(reg.mobile || '')}">📞</a>
+                    <a class="btn-whatsapp"
+                        href="https://wa.me/91${whatsappNum}?text=${whatsappMsg}"
+                        target="_blank">💬</a>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+
+    renderPagination(totalPages);
+}
+
+// ============================================
+// RENDER PAGINATION
+// ============================================
+function renderPagination(totalPages) {
+    const pag = document.getElementById('pagination');
+    if (totalPages <= 1) {
+        pag.innerHTML = '';
+        return;
+    }
+
+    let html = '';
+    html += `<button class="page-btn" onclick="changePage(${currentPage - 1})"
+        ${currentPage === 1 ? 'disabled' : ''}>◀ Prev</button>`;
+
+    for (let i = 1; i <= totalPages; i++) {
+        if (
+            i === 1 ||
+            i === totalPages ||
+            (i >= currentPage - 2 && i <= currentPage + 2)
+        ) {
+            html += `<button class="page-btn ${i === currentPage ? 'active' : ''}"
+                onclick="changePage(${i})">${i}</button>`;
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
+            html += `<span style="padding:0 4px;color:var(--text-gray)">...</span>`;
+        }
+    }
+
+    html += `<button class="page-btn" onclick="changePage(${currentPage + 1})"
+        ${currentPage === totalPages ? 'disabled' : ''}>Next ▶</button>`;
+
+    pag.innerHTML = html;
+}
+
+// ============================================
+// CHANGE PAGE
+// ============================================
+function changePage(page) {
+    const totalPages = Math.ceil(filteredRegistrations.length / RECORDS_PER_PAGE);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderTable();
+    document.querySelector('.table-container').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ============================================
+// VIEW USER DETAILS
+// ============================================
+function viewDetails(index) {
+    const reg = filteredRegistrations[index];
+    if (!reg) return;
+    currentViewRow = reg;
+
+    const dateStr = reg.timestamp
+        ? new Date(reg.timestamp).toLocaleString('en-IN')
+        : '-';
+
+    const details = [
+        { label: 'Registration ID', value: reg.regId },
+        { label: 'Timestamp', value: dateStr },
+        { label: 'Full Name', value: reg.fullName },
+        { label: 'Age', value: reg.age },
+        { label: 'Gender', value: reg.gender },
+        { label: 'Mobile', value: reg.mobile },
+        { label: 'WhatsApp', value: reg.whatsapp },
+        { label: 'Email', value: reg.email },
+        { label: 'City', value: reg.city },
+        { label: 'Area', value: reg.area },
+        { label: 'Chess Experience', value: reg.chessExp },
+        { label: 'Played Before', value: reg.playedBefore },
+        { label: 'Chess Rating', value: reg.chessRating },
+        { label: 'Learning Mode', value: reg.learnMode },
+        { label: 'Preferred Timing', value: reg.timing },
+        { label: 'Preferred Days', value: reg.prefDays },
+        { label: 'Reason for Learning', value: reg.reason },
+        { label: 'Learner Type', value: reg.learnerType },
+        { label: 'Parent / Guardian', value: reg.guardianName },
+        { label: 'Chess Board', value: reg.chessBoard },
+        { label: 'Source', value: reg.source },
+        { label: 'Status', value: reg.status },
+        { label: 'Additional Message', value: reg.additionalMsg, fullWidth: true },
+        { label: 'Admin Notes', value: reg.adminNotes, fullWidth: true }
+    ];
+
+    const grid = document.getElementById('detailGrid');
+    grid.innerHTML = details.map(d => `
+        <div class="detail-item ${d.fullWidth ? 'full-width' : ''}">
+            <div class="detail-label">${escapeHtml(d.label)}</div>
+            <div class="detail-value">${escapeHtml(d.value || '—')}</div>
+        </div>
+    `).join('');
+
+    // Set contact buttons
+    const mobile = reg.mobile || '';
+    const whatsappNum = reg.whatsapp || reg.mobile || '';
+    const whatsappMsg = encodeURIComponent(
+        'Hello ' + (reg.fullName || '') +
+        ', I received your request regarding Chess learning classes.'
+    );
+
+    document.getElementById('modalCallBtn').href = 'tel:' + mobile;
+    document.getElementById('modalWhatsAppBtn').href =
+        'https://wa.me/91' + whatsappNum + '?text=' + whatsappMsg;
+
+    // Set current status in dropdown
+    document.getElementById('modalStatusSelect').value = reg.status || 'New';
+
+    // Set notes
+    document.getElementById('modalNotesArea').value = reg.adminNotes || '';
+
+    // Clear update messages
+    document.getElementById('statusUpdateMsg').className = 'update-msg';
+    document.getElementById('notesUpdateMsg').className = 'update-msg';
+
+    // Show modal
+    document.getElementById('viewDetailsModal').classList.add('active');
+}
+
+// ============================================
+// CLOSE VIEW DETAILS MODAL
+// ============================================
+function closeViewDetails() {
+    document.getElementById('viewDetailsModal').classList.remove('active');
+    currentViewRow = null;
+}
+
+// ============================================
+// UPDATE STATUS
+// ============================================
+function updateStatus() {
+    if (!currentViewRow) return;
+
+    const newStatus = document.getElementById('modalStatusSelect').value;
+    const token = sessionStorage.getItem('adminToken');
+    const msgEl = document.getElementById('statusUpdateMsg');
+
+    if (!token) {
+        showToast('Session expired. Please login again.', 'error');
+        return;
+    }
+
+    msgEl.className = 'update-msg';
+    msgEl.textContent = '⏳ Updating...';
+    msgEl.style.display = 'block';
+
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+            action: 'updateStatus',
+            token: token,
+            regId: currentViewRow.regId,
+            status: newStatus
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update local data
+            currentViewRow.status = newStatus;
+            const reg = allRegistrations.find(r => r.regId === currentViewRow.regId);
+            if (reg) reg.status = newStatus;
+            const freg = filteredRegistrations.find(r => r.regId === currentViewRow.regId);
+            if (freg) freg.status = newStatus;
+
+            msgEl.className = 'update-msg success';
+            msgEl.textContent = '✅ Status updated successfully!';
+
+            // Refresh table and summary
+            updateSummaryCards();
+            renderTable();
+            showToast('Status updated to: ' + newStatus, 'success');
+        } else if (data.status === 'unauthorized') {
+            sessionStorage.removeItem('adminToken');
+            adminSessionToken = null;
+            closeViewDetails();
+            showPage('registrationPage');
+            showToast('Session expired. Please login again.', 'error');
+        } else {
+            msgEl.className = 'update-msg error';
+            msgEl.textContent = '❌ Failed to update status. Try again.';
+        }
+    })
+    .catch(err => {
+        console.error('Status update error:', err);
+        msgEl.className = 'update-msg error';
+        msgEl.textContent = '❌ Connection error. Please try again.';
+    });
+}
+
+// ============================================
+// SAVE NOTES
+// ============================================
+function saveNotes() {
+    if (!currentViewRow) return;
+
+    const notes = document.getElementById('modalNotesArea').value.trim();
+    const token = sessionStorage.getItem('adminToken');
+    const msgEl = document.getElementById('notesUpdateMsg');
+
+    if (!token) {
+        showToast('Session expired. Please login again.', 'error');
+        return;
+    }
+
+    msgEl.className = 'update-msg';
+    msgEl.textContent = '⏳ Saving notes...';
+    msgEl.style.display = 'block';
+
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+            action: 'updateNotes',
+            token: token,
+            regId: currentViewRow.regId,
+            notes: notes
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update local data
+            currentViewRow.adminNotes = notes;
+            const reg = allRegistrations.find(r => r.regId === currentViewRow.regId);
+            if (reg) reg.adminNotes = notes;
+            const freg = filteredRegistrations.find(r => r.regId === currentViewRow.regId);
+            if (freg) freg.adminNotes = notes;
+
+            msgEl.className = 'update-msg success';
+            msgEl.textContent = '✅ Notes saved successfully!';
+            showToast('Notes saved!', 'success');
+        } else if (data.status === 'unauthorized') {
+            sessionStorage.removeItem('adminToken');
+            adminSessionToken = null;
+            closeViewDetails();
+            showPage('registrationPage');
+            showToast('Session expired. Please login again.', 'error');
+        } else {
+            msgEl.className = 'update-msg error';
+            msgEl.textContent = '❌ Failed to save notes. Try again.';
+        }
+    })
+    .catch(err => {
+        console.error('Notes save error:', err);
+        msgEl.className = 'update-msg error';
+        msgEl.textContent = '❌ Connection error. Please try again.';
+    });
+}
+
+// ============================================
+// EXPORT CSV
+// ============================================
+function exportCSV() {
+    if (filteredRegistrations.length === 0) {
+        showToast('No data to export', 'warning');
+        return;
+    }
+
+    const headers = [
+        'Registration ID', 'Timestamp', 'Full Name', 'Age', 'Gender',
+        'Mobile', 'WhatsApp', 'Email', 'City', 'Area',
+        'Chess Experience', 'Played Before', 'Chess Rating',
+        'Learning Mode', 'Timing', 'Preferred Days', 'Reason',
+        'Learner Type', 'Guardian Name', 'Chess Board',
+        'Additional Message', 'Source', 'Status', 'Admin Notes'
+    ];
+
+    const rows = filteredRegistrations.map(reg => [
+        reg.regId, reg.timestamp, reg.fullName, reg.age, reg.gender,
+        reg.mobile, reg.whatsapp, reg.email, reg.city, reg.area,
+        reg.chessExp, reg.playedBefore, reg.chessRating,
+        reg.learnMode, reg.timing, reg.prefDays, reg.reason,
+        reg.learnerType, reg.guardianName, reg.chessBoard,
+        reg.additionalMsg, reg.source, reg.status, reg.adminNotes
+    ].map(val => '"' + (val || '').toString().replace(/"/g, '""') + '"'));
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'Chess_Registrations_' + new Date().toISOString().slice(0, 10) + '.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast('CSV exported successfully!', 'success');
+}
+
+// ============================================
+// ESCAPE HTML (XSS PREVENTION)
+// ============================================
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// ============================================
+// CLOSE MODALS ON OVERLAY CLICK
+// ============================================
+document.getElementById('adminLoginModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAdminLogin();
+});
+
+document.getElementById('viewDetailsModal').addEventListener('click', function(e) {
+    if (e.target === this) closeViewDetails();
+});
+
+// ============================================
+// KEYBOARD SHORTCUTS
+// ============================================
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeAdminLogin();
+        closeViewDetails();
+        document.getElementById('successModal').classList.remove('active');
+    }
+});
+
+// ============================================
+// ON PAGE LOAD — CHECK SESSION
+// ============================================
+window.addEventListener('load', function() {
+    // Check if admin session exists
+    const savedToken = sessionStorage.getItem('adminToken');
+    if (savedToken) {
+        adminSessionToken = savedToken;
+        // Verify token is still valid
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+                action: 'verifyToken',
+                token: savedToken
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showPage('adminPage');
+                loadDashboardData();
+            } else {
+                sessionStorage.removeItem('adminToken');
+                adminSessionToken = null;
+                showPage('registrationPage');
+            }
+        })
+        .catch(() => {
+            // On error show registration page
+            showPage('registrationPage');
+        });
+    } else {
+        showPage('registrationPage');
+    }
+});
+
+</script>
+</body>
+</html>
+
+
+
