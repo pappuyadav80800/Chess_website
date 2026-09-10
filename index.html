@@ -1010,12 +1010,13 @@
             white-space: nowrap;
         }
 
-        .status-New { background: #e3f2fd; color: #1565c0; }
-        .status-Contacted { background: #fff8e1; color: #f57f17; }
-        .status-Interested { background: #f3e5f5; color: #6a1b9a; }
-        .status-Trial { background: #fff3e0; color: #e65100; }
-        .status-Joined { background: #e8f5e9; color: #2e7d32; }
-        .status-Not-Interested { background: #ffebee; color: #c62828; }
+       .status-New { background: #e3f2fd; color: #1565c0; }
+.status-Contacted, .status-Contact { background: #fff8e1; color: #f57f17; }
+.status-Interested { background: #f3e5f5; color: #6a1b9a; }
+.status-Trial, .status-Trial-Scheduled { background: #fff3e0; color: #e65100; }
+.status-Joined, .status-Join { background: #e8f5e9; color: #2e7d32; }
+.status-Not-Interested, .status-Non-Interested { background: #ffebee; color: #c62828; }
+
 
         /* Action buttons in table */
         .action-btns {
@@ -1965,13 +1966,14 @@
             <div class="status-update-row">
                 <label>Update Status:</label>
                 <select class="status-update-select" id="modalStatusSelect">
-                    <option value="New">New</option>
-                    <option value="Contacted">Contacted</option>
-                    <option value="Interested">Interested</option>
-                    <option value="Trial Scheduled">Trial Scheduled</option>
-                    <option value="Joined">Joined</option>
-                    <option value="Not Interested">Not Interested</option>
-                </select>
+    <option value="New">New</option>
+    <option value="Contacted">Contact / Contacted</option>
+    <option value="Interested">Interested</option>
+    <option value="Trial Scheduled">Trial / Trial Scheduled</option>
+    <option value="Joined">Join / Joined</option>
+    <option value="Not Interested">Non-Interested / Not Interested</option>
+</select>
+
                 <button class="btn-update-status" onclick="updateStatus()">✔ Update</button>
             </div>
             <div class="update-msg" id="statusUpdateMsg"></div>
@@ -2532,9 +2534,17 @@ function updateSummaryCards() {
     };
 
     allRegistrations.forEach(reg => {
-        const status = reg.status || 'New';
+        let status = reg.status || 'New';
+        // Normalize status aliases
+        if (status === 'Contact') status = 'Contacted';
+        if (status === 'Trial') status = 'Trial Scheduled';
+        if (status === 'Join') status = 'Joined';
+        if (status === 'Non-Interested') status = 'Not Interested';
+
         if (counts.hasOwnProperty(status)) {
             counts[status]++;
+        } else {
+            counts['New']++;
         }
     });
 
@@ -2546,6 +2556,7 @@ function updateSummaryCards() {
     document.getElementById('countJoined').textContent = counts['Joined'];
     document.getElementById('countNotInterested').textContent = counts['Not Interested'];
 }
+
 
 // ============================================
 // APPLY FILTERS & SEARCH
@@ -2841,10 +2852,17 @@ function closeViewDetails() {
 // ============================================
 // UPDATE STATUS
 // ============================================
+// ============================================
+// FIXED STATUS UPDATE FUNCTION
+// ============================================
 function updateStatus() {
-    if (!currentViewRow) return;
+    if (!currentViewRow) {
+        showToast('❌ No record selected', 'error');
+        return;
+    }
 
-    const newStatus = document.getElementById('modalStatusSelect').value;
+    const selectEl = document.getElementById('modalStatusSelect');
+    const newStatus = selectEl ? selectEl.value : '';
     const token = sessionStorage.getItem('adminToken');
     const msgEl = document.getElementById('statusUpdateMsg');
 
@@ -2853,34 +2871,74 @@ function updateStatus() {
         return;
     }
 
+    if (!newStatus) {
+        showToast('Please select a valid status', 'warning');
+        return;
+    }
+
+    // Identifiers
+    const targetRegId = currentViewRow.regId || currentViewRow.id || '';
+    const targetMobile = currentViewRow.mobile || '';
+    const targetEmail = currentViewRow.email || '';
+
     msgEl.className = 'update-msg';
-    msgEl.textContent = '⏳ Updating...';
+    msgEl.textContent = '⏳ Saving status to Google Sheet...';
     msgEl.style.display = 'block';
+
+    const updateBtn = document.querySelector('.btn-update-status');
+    if (updateBtn) updateBtn.disabled = true;
+
+    // Send payload with multiple identifiers to guarantee match in Google Sheets
+    const payload = {
+        action: 'updateStatus',
+        token: token,
+        regId: targetRegId,
+        mobile: targetMobile,
+        email: targetEmail,
+        status: newStatus
+    };
 
     fetch(SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({
-            action: 'updateStatus',
-            token: token,
-            regId: currentViewRow.regId,
-            status: newStatus
-        })
+        body: JSON.stringify(payload)
     })
     .then(res => res.json())
     .then(data => {
-        if (data.status === 'success') {
-            // Update local data
+        if (updateBtn) updateBtn.disabled = false;
+
+        if (data.status === 'success' || data.result === 'success') {
+            // 1. Update current active object
             currentViewRow.status = newStatus;
-            const reg = allRegistrations.find(r => r.regId === currentViewRow.regId);
-            if (reg) reg.status = newStatus;
-            const freg = filteredRegistrations.find(r => r.regId === currentViewRow.regId);
-            if (freg) freg.status = newStatus;
+
+            // 2. Update inside allRegistrations array
+            allRegistrations.forEach(r => {
+                if ((targetRegId && r.regId === targetRegId) || (targetMobile && r.mobile === targetMobile)) {
+                    r.status = newStatus;
+                }
+            });
+
+            // 3. Update inside filteredRegistrations array
+            filteredRegistrations.forEach(r => {
+                if ((targetRegId && r.regId === targetRegId) || (targetMobile && r.mobile === targetMobile)) {
+                    r.status = newStatus;
+                }
+            });
+
+            // 4. Update Modal Detail View UI text directly
+            const detailItems = document.querySelectorAll('#detailGrid .detail-item');
+            detailItems.forEach(item => {
+                const label = item.querySelector('.detail-label');
+                if (label && label.textContent.trim().toUpperCase() === 'STATUS') {
+                    const val = item.querySelector('.detail-value');
+                    if (val) val.textContent = newStatus;
+                }
+            });
 
             msgEl.className = 'update-msg success';
-            msgEl.textContent = '✅ Status updated successfully!';
+            msgEl.textContent = '✅ Status successfully updated and saved!';
 
-            // Refresh table and summary
+            // 5. Refresh Table & Summary Cards
             updateSummaryCards();
             renderTable();
             showToast('Status updated to: ' + newStatus, 'success');
@@ -2892,15 +2950,17 @@ function updateStatus() {
             showToast('Session expired. Please login again.', 'error');
         } else {
             msgEl.className = 'update-msg error';
-            msgEl.textContent = '❌ Failed to update status. Try again.';
+            msgEl.textContent = '❌ Update failed: ' + (data.message || 'Server error');
         }
     })
     .catch(err => {
+        if (updateBtn) updateBtn.disabled = false;
         console.error('Status update error:', err);
         msgEl.className = 'update-msg error';
-        msgEl.textContent = '❌ Connection error. Please try again.';
+        msgEl.textContent = '❌ Connection error. Please check internet.';
     });
 }
+
 
 // ============================================
 // SAVE NOTES
