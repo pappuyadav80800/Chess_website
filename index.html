@@ -2329,44 +2329,44 @@ function resetForm() {
 // ============================================
 // ADMIN LOGIN MODAL (FIXED SINGLE-CLICK)
 // ============================================
+// ============================================
+// ADMIN LOGIN MODAL (INSTANT SINGLE-CLICK FIX)
+// ============================================
 function openAdminLogin() {
-    // Provide instant visual feedback & disable buttons to avoid multiple clicks
-    const btns = document.querySelectorAll('.admin-link-btn, .reg-footer button');
-    btns.forEach(btn => {
-        btn.disabled = true;
-        if (!btn.dataset.originalText) {
-            btn.dataset.originalText = btn.textContent;
+    try {
+        // 1. पुराने Inputs और Error मैसेज को साफ़ करें
+        var adminId = document.getElementById('adminId');
+        var adminPass = document.getElementById('adminPass');
+        var loginError = document.getElementById('loginError');
+
+        if (adminId) adminId.value = '';
+        if (adminPass) adminPass.value = '';
+        if (loginError) loginError.classList.remove('show');
+
+        // 2. Login Modal को तुरंत Screen पर दिखाएं (Instant Open)
+        var modal = document.getElementById('adminLoginModal');
+        if (modal) {
+            modal.classList.add('active');
+            modal.style.display = 'flex'; // Force Open
         }
-        btn.textContent = '⏳ Opening...';
-    });
 
-    // Small delay ensures UI stability and prevents race conditions
-    setTimeout(function() {
-        // Reset button states
-        btns.forEach(btn => {
-            btn.disabled = false;
-            btn.textContent = btn.dataset.originalText || btn.textContent;
-        });
-
-        // Reset inputs
-        document.getElementById('adminId').value = '';
-        document.getElementById('adminPass').value = '';
-        document.getElementById('loginError').classList.remove('show');
-
-        // Ensure current page is registration page
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById('registrationPage').classList.add('active');
-
-        // Show modal reliably
-        document.getElementById('adminLoginModal').classList.add('active');
-
-        // Auto-focus input
-        setTimeout(() => {
-            const adminIdInput = document.getElementById('adminId');
-            if (adminIdInput) adminIdInput.focus();
-        }, 50);
-    }, 100);
+        // 3. Admin ID इनपुट पर ऑटोमैटिक Focus करें
+        if (adminId) {
+            setTimeout(function() { adminId.focus(); }, 50);
+        }
+    } catch (e) {
+        console.error("Login Modal Error:", e);
+    }
 }
+
+function closeAdminLogin() {
+    var modal = document.getElementById('adminLoginModal');
+    if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+    }
+}
+
 
 function closeAdminLogin() {
     document.getElementById('adminLoginModal').classList.remove('active');
