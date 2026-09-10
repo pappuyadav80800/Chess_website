@@ -156,6 +156,11 @@
             background: rgba(201,162,39,0.1);
         }
 
+        .admin-link-btn:disabled, .reg-footer button:disabled {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
         /* Form container */
         .reg-container {
             max-width: 800px;
@@ -368,7 +373,7 @@
         }
 
         .btn-submit {
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            background:            linear-gradient(135deg, var(--accent), var(--accent-light));
             color: var(--primary);
             border: none;
             padding: 15px 50px;
@@ -1370,7 +1375,7 @@
             .filter-select, .filter-date { width: 100%; }
             .detail-grid { grid-template-columns: 1fr; }
             .detail-item.full-width { grid-column: span 1; }
-                        .admin-main { padding: 15px 12px; }
+            .admin-main { padding: 15px 12px; }
             .modal-box { padding: 25px 18px; }
             .status-update-row { flex-direction: column; align-items: flex-start; }
             .status-update-select { width: 100%; }
@@ -1616,7 +1621,7 @@
                             <label class="radio-option" onclick="selectRadio('reason','Hobby',this)">
                                 <input type="radio" name="reason" value="Hobby"> 🎮 Hobby
                             </label>
-                                                       <label class="radio-option" onclick="selectRadio('reason','Improve Concentration',this)">
+                            <label class="radio-option" onclick="selectRadio('reason','Improve Concentration',this)">
                                 <input type="radio" name="reason" value="Improve Concentration"> 🧠 Improve Concentration
                             </label>
                             <label class="radio-option" onclick="selectRadio('reason','School / College',this)">
@@ -1711,7 +1716,7 @@
                 </div>
 
                 <div class="consent-group" id="consentGroup" onclick="toggleConsent()">
-                    <div class="consent-checkbox" id="consentCheckbox">✓</div>
+                    <div class="consent-checkbox" id="consentCheckbox"></div>
                     <div class="consent-text">
                         <strong>I agree to be contacted</strong> regarding Chess classes and learning programs.
                         My information will be used only for chess learning purposes and will not be shared with third parties.
@@ -2119,7 +2124,7 @@ function validateForm() {
     const mobile = document.getElementById('mobile').value.trim();
     const mobileRegex = /^[6-9]\d{9}$/;
     if (!mobileRegex.test(mobile)) {
-               showErr('mobile', 'err-mobile');
+        showErr('mobile', 'err-mobile');
     } else {
         clearErr('mobile', 'err-mobile');
     }
@@ -2322,52 +2327,46 @@ function resetForm() {
 }
 
 // ============================================
-// ADMIN LOGIN MODAL
+// ADMIN LOGIN MODAL (FIXED SINGLE-CLICK)
 // ============================================
 function openAdminLogin() {
-    // Button visual feedback
-    const btns = document.querySelectorAll(
-        '.admin-link-btn, .reg-footer button'
-    );
+    // Provide instant visual feedback & disable buttons to avoid multiple clicks
+    const btns = document.querySelectorAll('.admin-link-btn, .reg-footer button');
     btns.forEach(btn => {
         btn.disabled = true;
-        btn.dataset.originalText = btn.textContent;
+        if (!btn.dataset.originalText) {
+            btn.dataset.originalText = btn.textContent;
+        }
         btn.textContent = '⏳ Opening...';
     });
 
-    // Small delay to ensure page is stable + show feedback
+    // Small delay ensures UI stability and prevents race conditions
     setTimeout(function() {
-        // Reset button state
+        // Reset button states
         btns.forEach(btn => {
             btn.disabled = false;
             btn.textContent = btn.dataset.originalText || btn.textContent;
         });
 
-        // Clear login form
+        // Reset inputs
         document.getElementById('adminId').value = '';
         document.getElementById('adminPass').value = '';
         document.getElementById('loginError').classList.remove('show');
 
-        // Ensure registration page is active first
-        // (prevents race condition with page state)
-        document.querySelectorAll('.page')
-            .forEach(p => p.classList.remove('active'));
-        document.getElementById('registrationPage')
-            .classList.add('active');
+        // Ensure current page is registration page
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('registrationPage').classList.add('active');
 
-        // Now open modal
-        document.getElementById('adminLoginModal')
-            .classList.add('active');
+        // Show modal reliably
+        document.getElementById('adminLoginModal').classList.add('active');
 
-        // Focus on input
+        // Auto-focus input
         setTimeout(() => {
             const adminIdInput = document.getElementById('adminId');
             if (adminIdInput) adminIdInput.focus();
         }, 50);
-
-    }, 150); // 150ms — enough for visual feedback, not noticeable delay
+    }, 100);
 }
-
 
 function closeAdminLogin() {
     document.getElementById('adminLoginModal').classList.remove('active');
@@ -2410,8 +2409,7 @@ function doAdminLogin() {
         loginBtn.textContent = '🔓 Login to Dashboard';
 
         if (data.status === 'success' && data.token) {
-            // Store session token in sessionStorage only
-            // NOT in localStorage (clears on browser close)
+            // Store session token in sessionStorage
             sessionStorage.setItem('adminToken', data.token);
             sessionStorage.setItem('adminId', adminId);
             adminSessionToken = data.token;
@@ -3035,20 +3033,16 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ============================================
-// ON PAGE LOAD — CHECK SESSION
+// ON PAGE LOAD — CHECK SESSION (NON-BLOCKING FIX)
 // ============================================
 window.addEventListener('load', function() {
     const savedToken = sessionStorage.getItem('adminToken');
-
     if (savedToken) {
         adminSessionToken = savedToken;
-
-        // ✅ पहले registration page दिखाओ (stable state)
-        // ताकि Admin button तुरंत काम करे
+        // Always show registration page first so UI is immediately responsive
         showPage('registrationPage');
 
-        // Background में token verify करो
-        // अगर valid है तो admin page पर redirect करो
+        // Background verification
         fetch(SCRIPT_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
@@ -3060,33 +3054,22 @@ window.addEventListener('load', function() {
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                // Token valid — admin page पर जाओ
                 showPage('adminPage');
                 loadDashboardData();
             } else {
-                // Token invalid — clear करो
-                // Page already registration page है, कुछ नहीं करना
                 sessionStorage.removeItem('adminToken');
                 adminSessionToken = null;
             }
         })
         .catch(() => {
-            // Network error — registration page पर रहो
-            // Page already set है, कुछ नहीं करना
             sessionStorage.removeItem('adminToken');
             adminSessionToken = null;
         });
-
     } else {
-        // No token — simply show registration page
         showPage('registrationPage');
     }
 });
 
-
 </script>
 </body>
 </html>
-
-
-
