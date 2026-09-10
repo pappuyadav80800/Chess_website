@@ -1418,9 +1418,11 @@
 
     <!-- Header -->
     <div class="reg-header">
-        <div class="admin-link-header">
-            <button class="admin-link-btn" onclick="openAdminLogin()">🔐 Admin</button>
-        </div>
+        <!-- ADMIN BUTTON FIX -->
+<div class="admin-link-header" style="z-index: 9999; position: relative;">
+    <button type="button" class="admin-link-btn" id="adminHeaderBtn" onclick="openAdminLogin(event)">🔐 Admin</button>
+</div>
+
         <span class="chess-icon">♟</span>
         <h1>Chess <span>Learning</span></h1>
         <div class="tagline">Learn • Practice • Improve</div>
@@ -3072,5 +3074,54 @@ window.addEventListener('load', function() {
 });
 
 </script>
+    <!-- EMERGENCY FAIL-SAFE SCRIPT FOR ADMIN BUTTON -->
+<script>
+// यह कोड किसी भी परिस्थिति में Admin Login Modal को तुरंत खोलेगा
+function openAdminLogin(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    var modal = document.getElementById('adminLoginModal');
+    if (modal) {
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('z-index', '999999', 'important');
+        modal.classList.add('active');
+        
+        // Input Reset & Auto Focus
+        var adminId = document.getElementById('adminId');
+        var adminPass = document.getElementById('adminPass');
+        var loginError = document.getElementById('loginError');
+        
+        if (adminId) adminId.value = '';
+        if (adminPass) adminPass.value = '';
+        if (loginError) loginError.style.display = 'none';
+        
+        setTimeout(function() {
+            if (adminId) adminId.focus();
+        }, 100);
+    } else {
+        alert("Error: adminLoginModal popup element not found in HTML!");
+    }
+}
+
+function closeAdminLogin() {
+    var modal = document.getElementById('adminLoginModal');
+    if (modal) {
+        modal.style.setProperty('display', 'none', 'important');
+        modal.classList.remove('active');
+    }
+}
+
+// डायरेक्ट बटन बाइंडिंग (Backup Fix)
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('adminHeaderBtn');
+    if (btn) {
+        btn.addEventListener('click', openAdminLogin);
+    }
+});
+</script>
+
 </body>
 </html>
