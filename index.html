@@ -2883,6 +2883,9 @@ function closeViewDetails() {
 // ============================================
 // STATUS UPDATE & DYNAMIC DASHBOARD SYNC
 // ============================================
+// ============================================
+// FIXED STATUS UPDATE FUNCTION (WITHOUT GOOGLE SHEET TEXT)
+// ============================================
 function updateStatus() {
     if (!currentViewRow) {
         showToast('❌ No record selected', 'error');
@@ -2910,7 +2913,9 @@ function updateStatus() {
     const targetEmail = currentViewRow.email || '';
 
     msgEl.className = 'update-msg';
-    msgEl.textContent = '⏳ Updating status...';
+    
+    // 👇 यहाँ से "Google Sheet" शब्द हटा दिया गया है
+    msgEl.textContent = '⏳ Saving status...'; 
     msgEl.style.display = 'block';
 
     const updateBtn = document.querySelector('.btn-update-status');
@@ -2938,7 +2943,7 @@ function updateStatus() {
             // 1. Update current selected object
             currentViewRow.status = newStatus;
 
-            // 2. Update status in allRegistrations Array (Source of Truth)
+            // 2. Update status in allRegistrations Array
             allRegistrations.forEach(r => {
                 const matchId = targetRegId && String(r.regId || r.id).trim() === String(targetRegId).trim();
                 const matchMobile = targetMobile && String(r.mobile).trim() === String(targetMobile).trim();
@@ -2995,6 +3000,7 @@ function updateStatus() {
         msgEl.textContent = '❌ Connection error. Please check internet.';
     });
 }
+
 
 
 
