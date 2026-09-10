@@ -2325,12 +2325,49 @@ function resetForm() {
 // ADMIN LOGIN MODAL
 // ============================================
 function openAdminLogin() {
-    document.getElementById('adminId').value = '';
-    document.getElementById('adminPass').value = '';
-    document.getElementById('loginError').classList.remove('show');
-    document.getElementById('adminLoginModal').classList.add('active');
-    setTimeout(() => document.getElementById('adminId').focus(), 100);
+    // Button visual feedback
+    const btns = document.querySelectorAll(
+        '.admin-link-btn, .reg-footer button'
+    );
+    btns.forEach(btn => {
+        btn.disabled = true;
+        btn.dataset.originalText = btn.textContent;
+        btn.textContent = '⏳ Opening...';
+    });
+
+    // Small delay to ensure page is stable + show feedback
+    setTimeout(function() {
+        // Reset button state
+        btns.forEach(btn => {
+            btn.disabled = false;
+            btn.textContent = btn.dataset.originalText || btn.textContent;
+        });
+
+        // Clear login form
+        document.getElementById('adminId').value = '';
+        document.getElementById('adminPass').value = '';
+        document.getElementById('loginError').classList.remove('show');
+
+        // Ensure registration page is active first
+        // (prevents race condition with page state)
+        document.querySelectorAll('.page')
+            .forEach(p => p.classList.remove('active'));
+        document.getElementById('registrationPage')
+            .classList.add('active');
+
+        // Now open modal
+        document.getElementById('adminLoginModal')
+            .classList.add('active');
+
+        // Focus on input
+        setTimeout(() => {
+            const adminIdInput = document.getElementById('adminId');
+            if (adminIdInput) adminIdInput.focus();
+        }, 50);
+
+    }, 150); // 150ms — enough for visual feedback, not noticeable delay
 }
+
 
 function closeAdminLogin() {
     document.getElementById('adminLoginModal').classList.remove('active');
@@ -3001,11 +3038,17 @@ document.addEventListener('keydown', function(e) {
 // ON PAGE LOAD — CHECK SESSION
 // ============================================
 window.addEventListener('load', function() {
-    // Check if admin session exists
     const savedToken = sessionStorage.getItem('adminToken');
+
     if (savedToken) {
         adminSessionToken = savedToken;
-        // Verify token is still valid
+
+        // ✅ पहले registration page दिखाओ (stable state)
+        // ताकि Admin button तुरंत काम करे
+        showPage('registrationPage');
+
+        // Background में token verify करो
+        // अगर valid है तो admin page पर redirect करो
         fetch(SCRIPT_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
@@ -3017,22 +3060,29 @@ window.addEventListener('load', function() {
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
+                // Token valid — admin page पर जाओ
                 showPage('adminPage');
                 loadDashboardData();
             } else {
+                // Token invalid — clear करो
+                // Page already registration page है, कुछ नहीं करना
                 sessionStorage.removeItem('adminToken');
                 adminSessionToken = null;
-                showPage('registrationPage');
             }
         })
         .catch(() => {
-            // On error show registration page
-            showPage('registrationPage');
+            // Network error — registration page पर रहो
+            // Page already set है, कुछ नहीं करना
+            sessionStorage.removeItem('adminToken');
+            adminSessionToken = null;
         });
+
     } else {
+        // No token — simply show registration page
         showPage('registrationPage');
     }
 });
+
 
 </script>
 </body>
