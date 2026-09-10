@@ -2522,40 +2522,65 @@ function loadDashboardData() {
 // ============================================
 // UPDATE SUMMARY CARDS
 // ============================================
+// ============================================
+// DYNAMIC DASHBOARD SUMMARY RE-CALCULATION
+// ============================================
 function updateSummaryCards() {
     const counts = {
         total: allRegistrations.length,
         New: 0,
         Contacted: 0,
         Interested: 0,
-        'Trial Scheduled': 0,
+        Trial: 0,
         Joined: 0,
-        'Not Interested': 0
+        NotInterested: 0
     };
 
+    // Recalculate strictly from actual records array (Source of Truth)
     allRegistrations.forEach(reg => {
-        let status = reg.status || 'New';
-        // Normalize status aliases
-        if (status === 'Contact') status = 'Contacted';
-        if (status === 'Trial') status = 'Trial Scheduled';
-        if (status === 'Join') status = 'Joined';
-        if (status === 'Non-Interested') status = 'Not Interested';
+        let rawStatus = (reg.status || 'New').toString().trim().toLowerCase();
 
-        if (counts.hasOwnProperty(status)) {
-            counts[status]++;
-        } else {
-            counts['New']++;
+        if (rawStatus === 'new') {
+            counts.New++;
+        } 
+        else if (rawStatus === 'contact' || rawStatus === 'contacted') {
+            counts.Contacted++;
+        } 
+        else if (rawStatus === 'interested') {
+            counts.Interested++;
+        } 
+        else if (rawStatus === 'trial' || rawStatus === 'trial schedule' || rawStatus === 'trial scheduled') {
+            counts.Trial++;
+        } 
+        else if (rawStatus === 'join' || rawStatus === 'joined') {
+            counts.Joined++;
+        } 
+        else if (rawStatus === 'non-interested' || rawStatus === 'not interested' || rawStatus === 'non interested') {
+            counts.NotInterested++;
+        } 
+        else {
+            counts.New++; // Safe Fallback
         }
     });
 
-    document.getElementById('countTotal').textContent = counts.total;
-    document.getElementById('countNew').textContent = counts['New'];
-    document.getElementById('countContacted').textContent = counts['Contacted'];
-    document.getElementById('countInterested').textContent = counts['Interested'];
-    document.getElementById('countTrial').textContent = counts['Trial Scheduled'];
-    document.getElementById('countJoined').textContent = counts['Joined'];
-    document.getElementById('countNotInterested').textContent = counts['Not Interested'];
+    // Update Summary Card UI Elements
+    const elTotal = document.getElementById('countTotal');
+    const elNew = document.getElementById('countNew');
+    const elContacted = document.getElementById('countContacted');
+    const elInterested = document.getElementById('countInterested');
+    const elTrial = document.getElementById('countTrial');
+    const elJoined = document.getElementById('countJoined');
+    const elNotInterested = document.getElementById('countNotInterested');
+
+    if (elTotal) elTotal.textContent = counts.total;
+    if (elNew) elNew.textContent = counts.New;
+    if (elContacted) elContacted.textContent = counts.Contacted;
+    if (elInterested) elInterested.textContent = counts.Interested;
+    if (elTrial) elTrial.textContent = counts.Trial;
+    if (elJoined) elJoined.textContent = counts.Joined;
+    if (elNotInterested) elNotInterested.textContent = counts.NotInterested;
 }
+
 
 
 // ============================================
@@ -2855,6 +2880,9 @@ function closeViewDetails() {
 // ============================================
 // FIXED STATUS UPDATE FUNCTION
 // ============================================
+// ============================================
+// STATUS UPDATE & DYNAMIC DASHBOARD SYNC
+// ============================================
 function updateStatus() {
     if (!currentViewRow) {
         showToast('❌ No record selected', 'error');
@@ -2876,19 +2904,18 @@ function updateStatus() {
         return;
     }
 
-    // Identifiers
+    // Capture Unique Identifiers
     const targetRegId = currentViewRow.regId || currentViewRow.id || '';
     const targetMobile = currentViewRow.mobile || '';
     const targetEmail = currentViewRow.email || '';
 
     msgEl.className = 'update-msg';
-    msgEl.textContent = '⏳ Saving status to Google Sheet...';
+    msgEl.textContent = '⏳ Updating status...';
     msgEl.style.display = 'block';
 
     const updateBtn = document.querySelector('.btn-update-status');
     if (updateBtn) updateBtn.disabled = true;
 
-    // Send payload with multiple identifiers to guarantee match in Google Sheets
     const payload = {
         action: 'updateStatus',
         token: token,
@@ -2908,24 +2935,32 @@ function updateStatus() {
         if (updateBtn) updateBtn.disabled = false;
 
         if (data.status === 'success' || data.result === 'success') {
-            // 1. Update current active object
+            // 1. Update current selected object
             currentViewRow.status = newStatus;
 
-            // 2. Update inside allRegistrations array
+            // 2. Update status in allRegistrations Array (Source of Truth)
             allRegistrations.forEach(r => {
-                if ((targetRegId && r.regId === targetRegId) || (targetMobile && r.mobile === targetMobile)) {
+                const matchId = targetRegId && String(r.regId || r.id).trim() === String(targetRegId).trim();
+                const matchMobile = targetMobile && String(r.mobile).trim() === String(targetMobile).trim();
+                const matchEmail = targetEmail && String(r.email).trim() === String(targetEmail).trim();
+
+                if (matchId || matchMobile || matchEmail) {
                     r.status = newStatus;
                 }
             });
 
-            // 3. Update inside filteredRegistrations array
+            // 3. Update status in filteredRegistrations Array
             filteredRegistrations.forEach(r => {
-                if ((targetRegId && r.regId === targetRegId) || (targetMobile && r.mobile === targetMobile)) {
+                const matchId = targetRegId && String(r.regId || r.id).trim() === String(targetRegId).trim();
+                const matchMobile = targetMobile && String(r.mobile).trim() === String(targetMobile).trim();
+                const matchEmail = targetEmail && String(r.email).trim() === String(targetEmail).trim();
+
+                if (matchId || matchMobile || matchEmail) {
                     r.status = newStatus;
                 }
             });
 
-            // 4. Update Modal Detail View UI text directly
+            // 4. Update Modal UI text
             const detailItems = document.querySelectorAll('#detailGrid .detail-item');
             detailItems.forEach(item => {
                 const label = item.querySelector('.detail-label');
@@ -2936,9 +2971,9 @@ function updateStatus() {
             });
 
             msgEl.className = 'update-msg success';
-            msgEl.textContent = '✅ Status successfully updated and saved!';
+            msgEl.textContent = '✅ Status updated successfully!';
 
-            // 5. Refresh Table & Summary Cards
+            // 5. Dynamic Recalculation of Dashboard Cards & Table Refresh
             updateSummaryCards();
             renderTable();
             showToast('Status updated to: ' + newStatus, 'success');
@@ -2960,6 +2995,7 @@ function updateStatus() {
         msgEl.textContent = '❌ Connection error. Please check internet.';
     });
 }
+
 
 
 // ============================================
