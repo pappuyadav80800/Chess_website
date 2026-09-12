@@ -2106,6 +2106,9 @@ function closeAdminLogin() {
 }
 
 // ADMIN LOGIN AUTHENTICATION
+// ============================================
+// FAST & PERSISTENT ADMIN LOGIN
+// ============================================
 function doAdminLogin() {
     const adminId = document.getElementById('adminId').value.trim();
     const adminPass = document.getElementById('adminPass').value.trim();
@@ -2138,12 +2141,15 @@ function doAdminLogin() {
         loginBtn.textContent = '🔓 Login to Dashboard';
 
         if (data.status === 'success' && data.token) {
+            // Persistent Session Storage (Fixes refresh logout bug)
+            localStorage.setItem('adminToken', data.token);
+            localStorage.setItem('adminId', adminId);
             sessionStorage.setItem('adminToken', data.token);
-            sessionStorage.setItem('adminId', adminId);
             adminSessionToken = data.token;
+
             closeAdminLogin();
             showPage('adminPage');
-            loadDashboardData();
+            loadDashboardData(false);
         } else {
             document.getElementById('loginError').textContent = '❌ Invalid Admin ID or Password.';
             document.getElementById('loginError').classList.add('show');
@@ -2154,30 +2160,47 @@ function doAdminLogin() {
         hideLoading();
         loginBtn.disabled = false;
         loginBtn.textContent = '🔓 Login to Dashboard';
-        document.getElementById('loginError').textContent = '❌ Connection error.';
+        document.getElementById('loginError').textContent = '❌ Connection error. Please try again.';
         document.getElementById('loginError').classList.add('show');
     });
 }
 
-function adminLogout() {
-    if (confirm('Are you sure you want to logout?')) {
+
+// ============================================
+// STEP 3: MANUAL LOGOUT ONLY
+// ============================================
+function adminLogout(force) {
+    if (force || confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminId');
+        localStorage.removeItem('cachedRegistrations');
         sessionStorage.removeItem('adminToken');
         sessionStorage.removeItem('adminId');
         adminSessionToken = null;
         allRegistrations = [];
         filteredRegistrations = [];
-        document.getElementById('tableBody').innerHTML = '';
+
+        const tbody = document.getElementById('tableBody');
+        if (tbody) tbody.innerHTML = '';
+
         showPage('registrationPage');
         showToast('Logged out successfully', 'success');
     }
 }
 
-function loadDashboardData() {
-    const token = sessionStorage.getItem('adminToken');
-    if (!token) { showPage('registrationPage'); return; }
+
+// ============================================
+// STEP 2: FAST & RELIABLE DASHBOARD DATA LOAD
+// ============================================
+function loadDashboardData(isSilent) {
+    const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+    if (!token) {
+        showPage('registrationPage');
+        return;
+    }
 
     adminSessionToken = token;
-    showLoading('Loading registrations...');
+    if (!isSilent) showLoading('Loading registrations...');
 
     fetch(SCRIPT_URL, {
         method: 'POST',
@@ -2186,23 +2209,34 @@ function loadDashboardData() {
     })
     .then(res => res.json())
     .then(data => {
-        hideLoading();
-        if (data.status === 'success') {
-            allRegistrations = data.registrations || [];
+        if (!isSilent) hideLoading();
+
+        if (data.status === 'success' || data.result === 'success') {
+            allRegistrations = data.registrations || data.data || [];
             filteredRegistrations = [...allRegistrations];
+
+            // Cache data locally for instant render on refresh
+            try {
+                localStorage.setItem('cachedRegistrations', JSON.stringify(allRegistrations));
+            } catch(e){}
+
             updateSummaryCards();
-            currentPage = 1;
             renderTable();
-            showToast('Data loaded successfully', 'success');
+            if (!isSilent) showToast('Data synced successfully', 'success');
+        } else if (data.status === 'unauthorized') {
+            adminLogout(true);
+            showToast('Session expired. Please login again.', 'error');
         } else {
-            showToast('❌ Failed to load data', 'error');
+            if (!isSilent) showToast('⚠️ Using saved data', 'warning');
         }
     })
     .catch(err => {
-        hideLoading();
-        showToast('❌ Connection error.', 'error');
+        if (!isSilent) hideLoading();
+        console.warn('Network issue on fetch, keeping current session:', err);
+        if (!isSilent) showToast('⚠️ Connection busy. Showing saved data.', 'warning');
     });
 }
+
 
 // DYNAMIC DASHBOARD RE-CALCULATION
 function updateSummaryCards() {
@@ -2540,29 +2574,36 @@ function escapeHtml(text) {
 }
 
 // INITIALIZATION ON PAGE LOAD
+// ============================================
+// STEP 4: INSTANT SESSION RESTORE ON REFRESH
+// ============================================
 window.addEventListener('load', function() {
-    const savedToken = sessionStorage.getItem('adminToken');
+    const savedToken = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+
     if (savedToken) {
         adminSessionToken = savedToken;
-        showPage('registrationPage');
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({ action: 'verifyToken', token: savedToken })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showPage('adminPage');
-                loadDashboardData();
-            } else {
-                sessionStorage.removeItem('adminToken');
-            }
-        });
+        
+        // 1. Instantly open Admin Page without bouncing
+        showPage('adminPage');
+
+        // 2. Load cached registrations instantly if available
+        const cached = localStorage.getItem('cachedRegistrations');
+        if (cached) {
+            try {
+                allRegistrations = JSON.parse(cached);
+                filteredRegistrations = [...allRegistrations];
+                updateSummaryCards();
+                renderTable();
+            } catch(e){}
+        }
+
+        // 3. Fetch latest data in background silently
+        loadDashboardData(true);
     } else {
         showPage('registrationPage');
     }
 });
+
 	// ============================================
 // TOGGLE SHOW / HIDE REGISTERED DATA
 // ============================================
