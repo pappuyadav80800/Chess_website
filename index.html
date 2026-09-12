@@ -1040,6 +1040,23 @@
 
         .btn-view { background: var(--primary); color: var(--white); }
         .btn-view:hover { background: var(--secondary); }
+		.btn-delete {
+    background: var(--error);
+    color: var(--white);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.btn-delete:hover { 
+    background: #bd2130; 
+}
+
 
         .btn-call { background: var(--success); color: var(--white); }
         .btn-call:hover { background: #059669; }
@@ -1851,7 +1868,7 @@
 ============================================ -->
 <script>
 // CONFIGURATION
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybGU4Ax37zXC6s_YNR6tzU-20TQ8xokRkNBKceh4BA7kJgqfeypRqtI1ooGWGL26kE/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwozI9ixFCivMVLlyW_kTa-JnlNAzM961jjHwxtZhOstN1O7DdQsgyVKmsVwc9AhUBZ/exec";
 
 // STATE VARIABLES
 let allRegistrations = [];
@@ -2443,26 +2460,30 @@ function renderTable() {
         const whatsappNum = reg.whatsapp || reg.mobile || '';
         const dateStr = reg.timestamp ? new Date(reg.timestamp).toLocaleDateString('en-IN') : '-';
 
-        return `
-        <tr>
-            <td class="td-id">${escapeHtml(reg.regId || '-')}</td>
-            <td style="white-space:nowrap">${dateStr}</td>
-            <td class="td-name">${escapeHtml(reg.fullName || '-')}</td>
-            <td>${escapeHtml(reg.age || '-')}</td>
-            <td style="white-space:nowrap">${escapeHtml(reg.mobile || '-')}</td>
-            <td>${escapeHtml(reg.city || '-')}</td>
-            <td style="font-size:0.75rem">${escapeHtml(reg.chessExp || '-')}</td>
-            <td>${escapeHtml(reg.learnMode || '-')}</td>
-            <td>${escapeHtml(reg.timing || '-')}</td>
-            <td><span class="status-badge ${statusClass}">${escapeHtml(reg.status || 'New')}</span></td>
-            <td>
-                <div class="action-btns">
-                    <button class="btn-view" onclick="viewDetails(${start + idx})">👁 View</button>
-                    <a class="btn-call" href="tel:${escapeHtml(reg.mobile || '')}">📞</a>
-                    <a class="btn-whatsapp" href="https://wa.me/91${whatsappNum}" target="_blank">💬</a>
-                </div>
-            </td>
-        </tr>`;
+        // renderTable() के अंदर action-btns वाला हिस्सा:
+return `
+<tr>
+    <td class="td-id">${escapeHtml(reg.regId || '-')}</td>
+    <td style="white-space:nowrap">${dateStr}</td>
+    <td class="td-name">${escapeHtml(reg.fullName || '-')}</td>
+    <td>${escapeHtml(reg.age || '-')}</td>
+    <td style="white-space:nowrap">${escapeHtml(reg.mobile || '-')}</td>
+    <td>${escapeHtml(reg.city || '-')}</td>
+    <td style="font-size:0.75rem">${escapeHtml(reg.chessExp || '-')}</td>
+    <td>${escapeHtml(reg.learnMode || '-')}</td>
+    <td>${escapeHtml(reg.timing || '-')}</td>
+    <td><span class="status-badge ${statusClass}">${escapeHtml(reg.status || 'New')}</span></td>
+    <td>
+        <div class="action-btns">
+            <button class="btn-view" onclick="viewDetails(${start + idx})">👁 View</button>
+            <a class="btn-call" href="tel:${escapeHtml(reg.mobile || '')}">📞</a>
+            <a class="btn-whatsapp" href="https://wa.me/91${whatsappNum}" target="_blank">💬</a>
+            <!-- 👇 यह नया Delete बटन जोड़ा गया है -->
+            <button class="btn-delete" onclick="deleteRegistration('${escapeHtml(reg.regId || '')}', '${escapeHtml(reg.mobile || '')}')">🗑️ Delete</button>
+        </div>
+    </td>
+</tr>`;
+
     }).join('');
 
     renderPagination(totalPages);
@@ -2694,6 +2715,75 @@ function filterBySummary(statusValue) {
     // Auto show table when summary card is clicked
     toggleShowData(true);
     applyFilters();
+}
+// ============================================
+// DELETE REGISTRATION FUNCTIONALITY
+// ============================================
+function deleteRegistration(regId, mobile) {
+    const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+    if (!token) {
+        showToast('Session expired. Please login again.', 'error');
+        return;
+    }
+
+    if (!confirm('⚠️ Are you sure you want to permanently delete this registration?')) {
+        return;
+    }
+
+    showLoading('Deleting record...');
+
+    const payload = {
+        action: 'deleteRegistration',
+        token: token,
+        regId: regId || '',
+        mobile: mobile || ''
+    };
+
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        hideLoading();
+        if (data.status === 'success' || data.result === 'success') {
+            // Remove record from local arrays instantly
+            allRegistrations = allRegistrations.filter(r => {
+                const matchId = regId && String(r.regId || r.id).trim() === String(regId).trim();
+                const matchMobile = mobile && String(r.mobile).trim() === String(mobile).trim();
+                return !(matchId || matchMobile);
+            });
+
+            filteredRegistrations = filteredRegistrations.filter(r => {
+                const matchId = regId && String(r.regId || r.id).trim() === String(regId).trim();
+                const matchMobile = mobile && String(r.mobile).trim() === String(mobile).trim();
+                return !(matchId || matchMobile);
+            });
+
+            // Update local storage cache
+            try {
+                localStorage.setItem('cachedRegistrations', JSON.stringify(allRegistrations));
+            } catch(e){}
+
+            // Close view modal if deleted item is open
+            if (currentViewRow && (currentViewRow.regId === regId || currentViewRow.mobile === mobile)) {
+                closeViewDetails();
+            }
+
+            // Refresh UI and Summary Cards
+            updateSummaryCards();
+            renderTable();
+            showToast('🗑️ Record deleted successfully!', 'success');
+        } else {
+            showToast('❌ Failed to delete record: ' + (data.message || 'Server error'), 'error');
+        }
+    })
+    .catch(err => {
+        hideLoading();
+        console.error('Delete error:', err);
+        showToast('❌ Connection error. Unable to delete record.', 'error');
+    });
 }
 
 </script>
