@@ -878,6 +878,24 @@
 
         .btn-export { background: var(--success); color: var(--white); }
         .btn-export:hover { background: #059669; }
+		.btn-show-data {
+    background: var(--accent);
+    color: var(--primary);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 700;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.btn-show-data:hover {
+    background: var(--accent-light);
+    transform: translateY(-1px);
+}
+
 
         /* Filters */
         .filters-row {
@@ -1646,7 +1664,12 @@
                         oninput="applyFilters()">
                 </div>
                 <button class="btn-refresh" onclick="loadDashboardData()">🔄 Refresh</button>
-                <button class="btn-export" onclick="exportCSV()">📥 Export CSV</button>
+                <button class="btn-export" onclick="exportCSV()">📥 Export CSV</button> <button class="btn-refresh" onclick="loadDashboardData()">🔄 Refresh</button>
+				
+<button class="btn-export" onclick="exportCSV()">📥 Export CSV</button>
+<!-- 👇 यह नया बटन जोड़ें -->
+<button class="btn-show-data" id="btnShowData" onclick="toggleShowData()">👁️ Show Data</button>
+
             </div>
             <div class="filters-row">
                 <select class="filter-select" id="filterStatus" onchange="applyFilters()">
@@ -1686,7 +1709,8 @@
         </div>
 
         <!-- Data Table -->
-        <div class="table-container">
+        <!-- Data Table (Default Hidden) -->
+<div class="table-container" id="tableContainer" style="display:none;">
             <div class="table-header-bar">
                 <h3>📋 Registered Users</h3>
                 <span class="records-count" id="recordsCount">0 records</span>
@@ -2539,6 +2563,39 @@ window.addEventListener('load', function() {
         showPage('registrationPage');
     }
 });
+	// ============================================
+// TOGGLE SHOW / HIDE REGISTERED DATA
+// ============================================
+function toggleShowData(forceShow) {
+    const tableContainer = document.getElementById('tableContainer');
+    const btn = document.getElementById('btnShowData');
+
+    if (!tableContainer) return;
+
+    if (forceShow === true || tableContainer.style.display === 'none' || tableContainer.style.display === '') {
+        tableContainer.style.display = 'block';
+        if (btn) btn.textContent = '🙈 Hide Data';
+        
+        // Scroll to table smoothly
+        tableContainer.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        tableContainer.style.display = 'none';
+        if (btn) btn.textContent = '👁️ Show Data';
+    }
+}
+
+// Summary Card क्लिक करने पर अपने आप डेटा खुल जाएगा
+function filterBySummary(statusValue) {
+    const filterSelect = document.getElementById('filterStatus');
+    if (filterSelect) {
+        filterSelect.value = statusValue;
+    }
+    
+    // Auto show table when summary card is clicked
+    toggleShowData(true);
+    applyFilters();
+}
+
 </script>
 </body>
 </html>
