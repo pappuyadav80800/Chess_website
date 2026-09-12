@@ -2109,22 +2109,33 @@ function closeAdminLogin() {
 // ============================================
 // FAST & PERSISTENT ADMIN LOGIN
 // ============================================
+// ============================================
+// PERFORMANCE OPTIMIZED ADMIN LOGIN
+// ============================================
 function doAdminLogin() {
-    const adminId = document.getElementById('adminId').value.trim();
-    const adminPass = document.getElementById('adminPass').value.trim();
+    const adminIdInput = document.getElementById('adminId');
+    const adminPassInput = document.getElementById('adminPass');
+    const adminId = adminIdInput ? adminIdInput.value.trim() : '';
+    const adminPass = adminPassInput ? adminPassInput.value.trim() : '';
 
     if (!adminId || !adminPass) {
-        document.getElementById('loginError').textContent = '⚠️ Please enter both Admin ID and Password.';
-        document.getElementById('loginError').classList.add('show');
+        const loginError = document.getElementById('loginError');
+        if (loginError) {
+            loginError.textContent = '⚠️ Please enter both Admin ID and Password.';
+            loginError.classList.add('show');
+        }
         return;
     }
 
     const loginBtn = document.getElementById('loginBtn');
-    loginBtn.disabled = true;
-    loginBtn.textContent = '⏳ Verifying...';
+    if (loginBtn) {
+        loginBtn.disabled = true;
+        loginBtn.textContent = '⚡ Verifying...';
+    }
 
-    showLoading('Authenticating...');
+    showLoading('Fast Verifying...');
 
+    // Fast Fetch without preflight overhead
     fetch(SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
@@ -2137,11 +2148,12 @@ function doAdminLogin() {
     .then(res => res.json())
     .then(data => {
         hideLoading();
-        loginBtn.disabled = false;
-        loginBtn.textContent = '🔓 Login to Dashboard';
+        if (loginBtn) {
+            loginBtn.disabled = false;
+            loginBtn.textContent = '🔓 Login to Dashboard';
+        }
 
         if (data.status === 'success' && data.token) {
-            // Persistent Session Storage (Fixes refresh logout bug)
             localStorage.setItem('adminToken', data.token);
             localStorage.setItem('adminId', adminId);
             sessionStorage.setItem('adminToken', data.token);
@@ -2149,21 +2161,32 @@ function doAdminLogin() {
 
             closeAdminLogin();
             showPage('adminPage');
+            
+            // Fast Data Fetch
             loadDashboardData(false);
         } else {
-            document.getElementById('loginError').textContent = '❌ Invalid Admin ID or Password.';
-            document.getElementById('loginError').classList.add('show');
-            document.getElementById('adminPass').value = '';
+            const loginError = document.getElementById('loginError');
+            if (loginError) {
+                loginError.textContent = '❌ Invalid Admin ID or Password.';
+                loginError.classList.add('show');
+            }
+            if (adminPassInput) adminPassInput.value = '';
         }
     })
     .catch(err => {
         hideLoading();
-        loginBtn.disabled = false;
-        loginBtn.textContent = '🔓 Login to Dashboard';
-        document.getElementById('loginError').textContent = '❌ Connection error. Please try again.';
-        document.getElementById('loginError').classList.add('show');
+        if (loginBtn) {
+            loginBtn.disabled = false;
+            loginBtn.textContent = '🔓 Login to Dashboard';
+        }
+        const loginError = document.getElementById('loginError');
+        if (loginError) {
+            loginError.textContent = '⚡ Connection busy. Please try clicking again.';
+            loginError.classList.add('show');
+        }
     });
 }
+
 
 
 // ============================================
@@ -2192,6 +2215,11 @@ function adminLogout(force) {
 // ============================================
 // STEP 2: FAST & RELIABLE DASHBOARD DATA LOAD
 // ============================================
+// ============================================
+// PERFORMANCE OPTIMIZED DASHBOARD DATA FETCHING
+// ============================================
+let isDataFetching = false; // Prevents duplicate API hits
+
 function loadDashboardData(isSilent) {
     const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
     if (!token) {
@@ -2200,8 +2228,27 @@ function loadDashboardData(isSilent) {
     }
 
     adminSessionToken = token;
-    if (!isSilent) showLoading('Loading registrations...');
 
+    // Prevent overlapping redundant API requests
+    if (isDataFetching) return;
+    isDataFetching = true;
+
+    // 1. Instant Cache Render if available
+    const cachedData = localStorage.getItem('cachedRegistrations');
+    if (cachedData && allRegistrations.length === 0) {
+        try {
+            allRegistrations = JSON.parse(cachedData);
+            filteredRegistrations = [...allRegistrations];
+            updateSummaryCards();
+            renderTable();
+        } catch(e){}
+    }
+
+    if (!isSilent && allRegistrations.length === 0) {
+        showLoading('Fast loading data...');
+    }
+
+    // 2. Optimized Fetch API Call
     fetch(SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
@@ -2209,33 +2256,38 @@ function loadDashboardData(isSilent) {
     })
     .then(res => res.json())
     .then(data => {
+        isDataFetching = false;
         if (!isSilent) hideLoading();
 
         if (data.status === 'success' || data.result === 'success') {
             allRegistrations = data.registrations || data.data || [];
             filteredRegistrations = [...allRegistrations];
 
-            // Cache data locally for instant render on refresh
+            // Cache data locally for zero-latency future renders
             try {
                 localStorage.setItem('cachedRegistrations', JSON.stringify(allRegistrations));
             } catch(e){}
 
             updateSummaryCards();
             renderTable();
-            if (!isSilent) showToast('Data synced successfully', 'success');
+            if (!isSilent) showToast('Data loaded successfully', 'success');
         } else if (data.status === 'unauthorized') {
             adminLogout(true);
             showToast('Session expired. Please login again.', 'error');
         } else {
-            if (!isSilent) showToast('⚠️ Using saved data', 'warning');
+            if (!isSilent) showToast('Loaded cached records', 'warning');
         }
     })
     .catch(err => {
+        isDataFetching = false;
         if (!isSilent) hideLoading();
-        console.warn('Network issue on fetch, keeping current session:', err);
-        if (!isSilent) showToast('⚠️ Connection busy. Showing saved data.', 'warning');
+        console.warn('Network latency detected. Displaying local data:', err);
+        if (!isSilent && allRegistrations.length > 0) {
+            showToast('Showing offline saved records', 'warning');
+        }
     });
 }
+
 
 
 // DYNAMIC DASHBOARD RE-CALCULATION
