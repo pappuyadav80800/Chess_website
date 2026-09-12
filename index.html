@@ -776,15 +776,16 @@
             margin-bottom: 28px;
         }
 
-        .summary-card {
-            background: var(--white);
-            border-radius: 16px;
-            padding: 20px 16px;
-            text-align: center;
-            box-shadow: var(--card-shadow);
-            border-top: 4px solid var(--border);
-            transition: var(--transition);
-        }
+       .summary-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 18px 15px;
+    text-align: center;
+    box-shadow: var(--card-shadow);
+    border-top: 4px solid var(--border);
+    transition: var(--transition);
+    cursor: pointer; /* ← clickable pointer */
+}
 
         .summary-card:hover {
             transform: translateY(-3px);
@@ -1602,36 +1603,38 @@
     <div class="admin-main">
 
         <!-- Summary Cards -->
-        <div class="summary-grid">
-            <div class="summary-card total">
-                <div class="summary-number" id="countTotal">0</div>
-                <div class="summary-label">Total</div>
-            </div>
-            <div class="summary-card new">
-                <div class="summary-number" id="countNew">0</div>
-                <div class="summary-label">New</div>
-            </div>
-            <div class="summary-card contacted">
-                <div class="summary-number" id="countContacted">0</div>
-                <div class="summary-label">Contacted</div>
-            </div>
-            <div class="summary-card interested">
-                <div class="summary-number" id="countInterested">0</div>
-                <div class="summary-label">Interested</div>
-            </div>
-            <div class="summary-card trial">
-                <div class="summary-number" id="countTrial">0</div>
-                <div class="summary-label">Trial / Scheduled</div>
-            </div>
-            <div class="summary-card joined">
-                <div class="summary-number" id="countJoined">0</div>
-                <div class="summary-label">Joined</div>
-            </div>
-            <div class="summary-card not-interested">
-                <div class="summary-number" id="countNotInterested">0</div>
-                <div class="summary-label">Not Interested</div>
-            </div>
-        </div>
+       <!-- Summary Cards (With Clickable Filter) -->
+<div class="summary-grid">
+    <div class="summary-card total" onclick="filterBySummary('')">
+        <div class="summary-number" id="countTotal">0</div>
+        <div class="summary-label">Total</div>
+    </div>
+    <div class="summary-card new" onclick="filterBySummary('New')">
+        <div class="summary-number" id="countNew">0</div>
+        <div class="summary-label">New</div>
+    </div>
+    <div class="summary-card contacted" onclick="filterBySummary('Contacted')">
+        <div class="summary-number" id="countContacted">0</div>
+        <div class="summary-label">Contacted</div>
+    </div>
+    <div class="summary-card interested" onclick="filterBySummary('Interested')">
+        <div class="summary-number" id="countInterested">0</div>
+        <div class="summary-label">Interested</div>
+    </div>
+    <div class="summary-card trial" onclick="filterBySummary('Trial Scheduled')">
+        <div class="summary-number" id="countTrial">0</div>
+        <div class="summary-label">Trial / Scheduled</div>
+    </div>
+    <div class="summary-card joined" onclick="filterBySummary('Joined')">
+        <div class="summary-number" id="countJoined">0</div>
+        <div class="summary-label">Joined</div>
+    </div>
+    <div class="summary-card not-interested" onclick="filterBySummary('Not Interested')">
+        <div class="summary-number" id="countNotInterested">0</div>
+        <div class="summary-label">Not Interested</div>
+    </div>
+</div>
+
 
         <!-- Controls Bar -->
         <div class="controls-bar">
@@ -2209,7 +2212,63 @@ function updateSummaryCards() {
     document.getElementById('countJoined').textContent = counts.Joined;
     document.getElementById('countNotInterested').textContent = counts.NotInterested;
 }
+// ============================================
+// CLICKABLE SUMMARY CARD FILTER (यह नया जोड़ें)
+// ============================================
+function filterBySummary(statusValue) {
+    const filterSelect = document.getElementById('filterStatus');
+    if (filterSelect) {
+        filterSelect.value = statusValue;
+    }
+    applyFilters();
+    
+    const tableContainer = document.querySelector('.table-container');
+    if (tableContainer) {
+        tableContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+}
 
+// ============================================
+// APPLY FILTERS (यह पहले से मौजूद है, इसे रिप्लेस कर दें)
+// ============================================
+function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const statusFilter = document.getElementById('filterStatus').value.trim().toLowerCase();
+    const expFilter = document.getElementById('filterExperience').value;
+    const modeFilter = document.getElementById('filterMode').value;
+
+    filteredRegistrations = allRegistrations.filter(reg => {
+        if (search) {
+            const searchStr = [reg.fullName, reg.mobile, reg.email, reg.city, reg.regId].join(' ').toLowerCase();
+            if (!searchStr.includes(search)) return false;
+        }
+
+        if (statusFilter) {
+            let regStatus = (reg.status || 'New').toString().trim().toLowerCase();
+
+            let matches = false;
+            if (statusFilter === 'new' && regStatus === 'new') matches = true;
+            else if ((statusFilter === 'contacted' || statusFilter === 'contact') && (regStatus === 'contact' || regStatus === 'contacted')) matches = true;
+            else if (statusFilter === 'interested' && regStatus === 'interested') matches = true;
+            else if ((statusFilter === 'trial scheduled' || statusFilter === 'trial') && (regStatus === 'trial' || regStatus === 'trial schedule' || regStatus === 'trial scheduled')) matches = true;
+            else if ((statusFilter === 'joined' || statusFilter === 'join') && (regStatus === 'join' || regStatus === 'joined')) matches = true;
+            else if ((statusFilter === 'not interested' || statusFilter === 'non-interested') && (regStatus === 'non-interested' || regStatus === 'not interested' || regStatus === 'non interested')) matches = true;
+            else if (regStatus === statusFilter) matches = true;
+
+            if (!matches) return false;
+        }
+
+        if (expFilter && !(reg.chessExp || '').toLowerCase().includes(expFilter.toLowerCase())) return false;
+        if (modeFilter && reg.learnMode !== modeFilter) return false;
+
+        return true;
+    });
+
+    currentPage = 1;
+    renderTable();
+}
+
+	
 function applyFilters() {
     const search = document.getElementById('searchInput').value.toLowerCase().trim();
     const statusFilter = document.getElementById('filterStatus').value;
