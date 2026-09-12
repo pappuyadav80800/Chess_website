@@ -2112,6 +2112,9 @@ function closeAdminLogin() {
 // ============================================
 // PERFORMANCE OPTIMIZED ADMIN LOGIN
 // ============================================
+// ============================================
+// PERFORMANCE OPTIMIZED ADMIN LOGIN
+// ============================================
 function doAdminLogin() {
     const adminIdInput = document.getElementById('adminId');
     const adminPassInput = document.getElementById('adminPass');
@@ -2133,9 +2136,8 @@ function doAdminLogin() {
         loginBtn.textContent = '⚡ Verifying...';
     }
 
-    showLoading('Fast Verifying...');
+    showLoading('Verifying credentials...');
 
-    // Fast Fetch without preflight overhead
     fetch(SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
@@ -2162,7 +2164,7 @@ function doAdminLogin() {
             closeAdminLogin();
             showPage('adminPage');
             
-            // Fast Data Fetch
+            // Fetch Dashboard Data
             loadDashboardData(false);
         } else {
             const loginError = document.getElementById('loginError');
@@ -2179,13 +2181,15 @@ function doAdminLogin() {
             loginBtn.disabled = false;
             loginBtn.textContent = '🔓 Login to Dashboard';
         }
+        console.error('Login error:', err);
         const loginError = document.getElementById('loginError');
         if (loginError) {
-            loginError.textContent = '⚡ Connection busy. Please try clicking again.';
+            loginError.textContent = '❌ Connection error. Please try clicking Login again.';
             loginError.classList.add('show');
         }
     });
 }
+
 
 
 
@@ -2218,7 +2222,10 @@ function adminLogout(force) {
 // ============================================
 // PERFORMANCE OPTIMIZED DASHBOARD DATA FETCHING
 // ============================================
-let isDataFetching = false; // Prevents duplicate API hits
+// ============================================
+// SINGLE PIPELINE RELIABLE DATA FETCHING
+// ============================================
+let isDataFetching = false;
 
 function loadDashboardData(isSilent) {
     const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
@@ -2229,26 +2236,14 @@ function loadDashboardData(isSilent) {
 
     adminSessionToken = token;
 
-    // Prevent overlapping redundant API requests
+    // Prevent duplicate overlapping network calls
     if (isDataFetching) return;
     isDataFetching = true;
 
-    // 1. Instant Cache Render if available
-    const cachedData = localStorage.getItem('cachedRegistrations');
-    if (cachedData && allRegistrations.length === 0) {
-        try {
-            allRegistrations = JSON.parse(cachedData);
-            filteredRegistrations = [...allRegistrations];
-            updateSummaryCards();
-            renderTable();
-        } catch(e){}
-    }
-
     if (!isSilent && allRegistrations.length === 0) {
-        showLoading('Fast loading data...');
+        showLoading('Loading Dashboard Data...');
     }
 
-    // 2. Optimized Fetch API Call
     fetch(SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
@@ -2263,30 +2258,38 @@ function loadDashboardData(isSilent) {
             allRegistrations = data.registrations || data.data || [];
             filteredRegistrations = [...allRegistrations];
 
-            // Cache data locally for zero-latency future renders
+            // Cache data locally for instant render on refresh
             try {
                 localStorage.setItem('cachedRegistrations', JSON.stringify(allRegistrations));
             } catch(e){}
 
             updateSummaryCards();
             renderTable();
-            if (!isSilent) showToast('Data loaded successfully', 'success');
+            if (!isSilent) showToast('Data synced successfully', 'success');
         } else if (data.status === 'unauthorized') {
             adminLogout(true);
             showToast('Session expired. Please login again.', 'error');
         } else {
-            if (!isSilent) showToast('Loaded cached records', 'warning');
+            if (!isSilent) showToast('Data loaded', 'info');
         }
     })
     .catch(err => {
         isDataFetching = false;
         if (!isSilent) hideLoading();
-        console.warn('Network latency detected. Displaying local data:', err);
-        if (!isSilent && allRegistrations.length > 0) {
-            showToast('Showing offline saved records', 'warning');
+        console.warn('Network sync notice:', err);
+        // Fallback to cached data if available without throwing error toasts
+        const cached = localStorage.getItem('cachedRegistrations');
+        if (cached && allRegistrations.length === 0) {
+            try {
+                allRegistrations = JSON.parse(cached);
+                filteredRegistrations = [...allRegistrations];
+                updateSummaryCards();
+                renderTable();
+            } catch(e){}
         }
     });
 }
+
 
 
 
@@ -2629,13 +2632,16 @@ function escapeHtml(text) {
 // ============================================
 // STEP 4: INSTANT SESSION RESTORE ON REFRESH
 // ============================================
+// ============================================
+// SMOOTH SESSION & DATA SYNC ON REFRESH (F5)
+// ============================================
 window.addEventListener('load', function() {
     const savedToken = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
 
     if (savedToken) {
         adminSessionToken = savedToken;
         
-        // 1. Instantly open Admin Page without bouncing
+        // 1. Immediately open Admin Page
         showPage('adminPage');
 
         // 2. Load cached registrations instantly if available
@@ -2647,14 +2653,17 @@ window.addEventListener('load', function() {
                 updateSummaryCards();
                 renderTable();
             } catch(e){}
+        } else {
+            showLoading('⚡ Syncing Session & Data...');
         }
 
-        // 3. Fetch latest data in background silently
-        loadDashboardData(true);
+        // 3. Sync latest data silently in background
+        loadDashboardData(cached ? true : false);
     } else {
         showPage('registrationPage');
     }
 });
+
 
 	// ============================================
 // TOGGLE SHOW / HIDE REGISTERED DATA
