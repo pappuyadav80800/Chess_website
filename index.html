@@ -1656,21 +1656,19 @@
 
         <!-- Controls Bar -->
         <div class="controls-bar">
-            <div class="controls-top">
-                <div class="search-box">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="searchInput"
-                        placeholder="Search by name, mobile, email, city, ID..."
-                        oninput="applyFilters()">
-                </div>
-                <button class="btn-refresh" onclick="loadDashboardData()">🔄 Refresh</button>
-                <button class="btn-export" onclick="exportCSV()">📥 Export CSV</button> <button class="btn-refresh" onclick="loadDashboardData()">🔄 Refresh</button>
-				
-<button class="btn-export" onclick="exportCSV()">📥 Export CSV</button>
-<!-- 👇 यह नया बटन जोड़ें -->
-<button class="btn-show-data" id="btnShowData" onclick="toggleShowData()">👁️ Show Data</button>
+            <!-- CLEAN CONTROLS BAR (SINGLE BUTTONS) -->
+<div class="controls-top">
+    <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput"
+            placeholder="Search by name, mobile, email, city, ID..."
+            oninput="applyFilters()">
+    </div>
+    <button class="btn-refresh" onclick="loadDashboardData()">🔄 Refresh</button>
+    <button class="btn-export" onclick="exportCSV()">📥 Export CSV</button>
+    <button class="btn-show-data" id="btnShowData" onclick="toggleShowData()">👁️ Show Data</button>
+</div>
 
-            </div>
             <div class="filters-row">
                 <select class="filter-select" id="filterStatus" onchange="applyFilters()">
                     <option value="">All Status</option>
